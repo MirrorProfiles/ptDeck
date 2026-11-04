@@ -65,10 +65,12 @@ pages:
       lit color: '#b8342a'}
     - {key: 15, label: 'Buffer
 
-    128', macro: Buffer 128, color: '#606060'}
+    128', macro: Buffer 128, color: '#606060', lit when: {buffer size: 128},
+      lit color: '#2e8b57'}
     - {key: 16, label: 'Buffer
 
-    1024', macro: Buffer 1024, color: '#606060'}
+    1024', macro: Buffer 1024, color: '#606060', lit when: {buffer size: 1024},
+      lit color: '#2e8b57'}
     - {key: 17, icon: folder-ampete.png, folder: Ampete, outline: none}
     - {key: 18, icon: recording.png, folder: Recording}
     - {key: 20, icon: metric-ab.png, folder: Metric A/B}
@@ -353,9 +355,9 @@ pages:
     Keep Source', macro: Commit - Entire Track - Realtime - Do Nothing, color: '#5a3a6a'}
 
   SOLO MODES:
-    - {key: 27, icon: afl-xor.png, macro: AFL X-OR, lit menu: ['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*'], lit outline: '#f2c230'}
-    - {key: 28, icon: sip-xor.png, macro: SIP X-OR, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > X-OR*'], lit outline: '#f2c230'}
-    - {key: 29, icon: sip-latch.png, macro: SIP Latch, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > Latch*'], lit outline: '#f2c230'}
+    - {key: 27, icon: afl-xor.png, macro: AFL X-OR, lit menu: ['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*']}
+    - {key: 28, icon: sip-xor.png, macro: SIP X-OR, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > X-OR*']}
+    - {key: 29, icon: sip-latch.png, macro: SIP Latch, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > Latch*']}
     - {key: 30, label: SIP, lit label: AFL, macro: CHP Solo SIP AFL, color: '#5c4f12', lit color: '#a8901c',
       lit menu: 'Options > Solo Mode > AFL*', glyph: headphones}
 

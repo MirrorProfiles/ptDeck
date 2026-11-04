@@ -2223,3 +2223,68 @@ def test_insert_slots_found_once_per_session(tmp_path):
     finally:
         MM.E.find_all = saved
         Runner._slots_cache = None
+
+
+# ---------- live keys stay light on Pro Tools ----------
+
+def _count_questions(monkeypatch):
+    """Count Accessibility questions asked of the fake Pro Tools."""
+    n = {"q": 0}
+    orig = El.attr
+
+    def attr(self, name):
+        n["q"] += 1
+        return orig(self, name)
+    monkeypatch.setattr(El, "attr", attr)
+    return n
+
+
+def test_live_reads_remember_track_headers(tmp_path, monkeypatch):
+    others = [header(f"Track {i}") for i in range(60)]
+    prn = header("(PRINT)", "Aux", {"A": ("", "Oxford Inflator")})
+    app, _win = edit_app(*others, prn)
+    r = Runner(TrackSys(app, []), lib_with(tmp_path), log=lambda m: None)
+    n = _count_questions(monkeypatch)
+    first = r.read_inserts("(PRINT)")
+    cold, n["q"] = n["q"], 0
+    second = r.read_inserts("(PRINT)")
+    assert first == second and first["A"] == ("Oxford Inflator", "")
+    assert n["q"] < cold / 5, (n["q"], cold)          # no search through all 61 tracks again
+    prn.kids[0].kids[1].a["AXValue"] = "Pro-L 2"      # a change still shows straight away
+    assert r.read_inserts("(PRINT)")["A"][0] == "Pro-L 2"
+
+
+def test_live_reads_dont_wait_for_missing_tracks(tmp_path, monkeypatch):
+    app, _win = edit_app(header("Kick"))
+    s = TrackSys(app, [])
+    r = Runner(s, lib_with(tmp_path), log=lambda m: None)
+    t0 = s.now()
+    with pytest.raises(E.NotFound):
+        r.read_inserts("(PRINT)")
+    assert s.now() - t0 < 0.5                         # one look, not 3 seconds of searching
+    n = _count_questions(monkeypatch)
+    with pytest.raises(E.NotFound):
+        r.read_inserts("(PRINT)")
+    assert n["q"] == 0                                # remembered as missing for a few seconds
+
+
+def test_live_reads_remember_plugin_window_controls(tmp_path, monkeypatch):
+    prn = header("(PRINT)", "Aux", {"F": ("open", "Oxford Inflator")})
+    gui = El("AXGroup", "plug-in GUI", [El("AXGroup", None, [El("AXButton", f"knob {i}") for i in range(40)])])
+    sel, pos = El("AXPopUpButton", "Track Selector", value="(PRINT)"), El("AXPopUpButton", "Insert Position selector", value="f")
+    byp = El("AXButton", "Effect Bypass", value="Selected")
+    win = El("AXWindow", "Plug-in: Oxford Inflator", [El("AXGroup", "header", [sel, pos, byp]), gui])
+    app = make_app([El("AXWindow", "Edit: Song", [prn], size=(3000, 2000)), win])
+    r = Runner(TrackSys(app, []), lib_with(tmp_path), log=lambda m: None)
+    assert r.read_inserts("(PRINT)")["F"][1] == "open bypassed"
+    n = _count_questions(monkeypatch)
+    byp.a["AXValue"] = ""
+    assert r.read_inserts("(PRINT)")["F"][1] == "open active"
+    assert n["q"] < 60, n["q"]                        # the plug-in's own controls aren't searched again
+
+
+def test_deck_waits_for_pro_tools_after_a_press():
+    import time
+    c = D.DeckController.__new__(D.DeckController)
+    c._after_press()
+    assert c._poke and c._quiet_until > time.time() + 0.3

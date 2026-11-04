@@ -873,7 +873,7 @@ class Runner:
 
     VIEW_GROUPS = {"I/O": "*IO"}      # Edit window view -> the group it adds to each track
 
-    def track_header(self, track, *views):
+    def track_header(self, track, *views, wait: float = 3.0):
         """The track's header in the Edit window. Any 'views' (e.g. 'Sends A-E') that aren't
         showing are switched on first, but only if they're actually missing."""
         pattern = re.sub(r"([*?\[])", r"[\1]", str(track)) + " - * Track"
@@ -893,7 +893,7 @@ class Runner:
                 except E.NotFound:
                     continue
             raise E.NotFound(f"track '{track}'")
-        header = self.until(find, 3.0, f"track '{track}' in the Edit or Mix window (is it shown?)")
+        header = self.until(find, wait, f"track '{track}' in the Edit or Mix window (is it shown?)")
         missing = [v for v in views if not any(E.name_matches(c, self.VIEW_GROUPS.get(v, v))
                                                for c in E.children(header) if c.attr("AXRole") == "AXGroup")]
         if missing and not str(header.attr("AXTitle") or "").endswith(("VCA Track", "Basic Folder Track")):
@@ -950,17 +950,51 @@ class Runner:
             except (E.NotFound, MacroError):
                 pass
 
+    # The live keys read Pro Tools every second. Pro Tools answers Accessibility questions on
+    # the same thread that handles your keys and mouse, so every question slows it down.
+    # Finding a track header means asking about every track in the Edit window, and finding a
+    # plug-in window's controls means asking about everything in that window. So the live keys
+    # remember what they found (checking it is one or two questions) and look again from
+    # scratch every LIVE_REMEMBER seconds, or straight away if what they remembered has gone.
+    LIVE_REMEMBER = 5.0
+
+    def _live_header(self, track):
+        """(header, its buttons) for the live keys, remembered between reads."""
+        cache = self.__dict__.setdefault("_live_headers", {})
+        now = time.time()
+        hit = cache.get(track)
+        if hit and now - hit[2] < self.LIVE_REMEMBER:
+            header, buttons, _ = hit
+            if header is None:
+                raise E.NotFound(f"track '{track}'")          # wasn't there a moment ago
+            pattern = re.sub(r"([*?\[])", r"[\1]", str(track)) + " - * Track"
+            first = next(iter(buttons.values()), None)
+            if E.name_matches(header, pattern) and (first is None or first.attr("AXRole")):
+                return header, buttons
+        try:
+            header = self.track_header(track, wait=0)        # one look, no 3-second retry
+        except E.NotFound:
+            cache[track] = (None, {}, now)
+            raise
+        self._btn_cache = None
+        buttons = self._header_buttons(header)
+        cache[track] = (header, buttons, now)
+        return header, buttons
+
     def read_inserts(self, track):
         """{'A': (plug-in name, state), ...} for a track's inserts, as Pro Tools shows them.
         state: '' (active), 'inactive', 'bypassed', 'open' (window showing) or 'unassigned'.
         Read-only and quiet: never switches Edit window views."""
-        header = self.track_header(track)
+        header, buttons = self._live_header(track)
+        self._btn_cache = (header, buttons)
         out = {}
-        for L in self.SLOTS:
-            state, asg = self._try_slot(header, "Insert", L)
-            if asg is not None:
-                out[L] = (str(asg.attr("AXValue") or ""), str(state or ""))
-        self._btn_cache = None
+        try:
+            for L in self.SLOTS:
+                state, asg = self._try_slot(header, "Insert", L)
+                if asg is not None:
+                    out[L] = (str(asg.attr("AXValue") or ""), str(state or ""))
+        finally:
+            self._btn_cache = None
         # With its window open, a slot only says 'open': ask the window if it's bypassed.
         for L, (name, state) in out.items():
             if state == "open":
@@ -968,6 +1002,43 @@ class Runner:
                 if b is not None:
                     out[L] = (name, "open bypassed" if b else "open active")
         return out
+
+    PLUGIN_CONTROLS = {("AXPopUpButton", "Track Selector"): "track",
+                       ("AXPopUpButton", "Insert Position selector"): "slot",
+                       ("AXButton", "Effect Bypass"): "bypass"}
+
+    def _plugin_controls(self, w):
+        """A plug-in window's Track Selector, Insert Position and Bypass, found in one search
+        that stops as soon as all three turn up, and remembered for LIVE_REMEMBER seconds."""
+        cache = self.__dict__.setdefault("_plugin_ctl", {})
+        now = time.time()
+        for k in [k for k, v in cache.items() if now - v[1] > self.LIVE_REMEMBER]:
+            del cache[k]
+        if w in cache:
+            ctl = cache[w][0]
+            if ctl is None:
+                return None                     # e.g. an inactive plug-in's small window
+            if ctl["bypass"].attr("AXRole"):
+                return ctl
+        def search(only_groups):
+            found, level, depth = {}, E.children(w), 0
+            while level and depth < 25 and len(found) < len(self.PLUGIN_CONTROLS):
+                nxt = []
+                for el in level:
+                    role = el.attr("AXRole")
+                    if role in ("AXPopUpButton", "AXButton"):
+                        for lab in E.labels(el):
+                            key = self.PLUGIN_CONTROLS.get((role, lab))
+                            if key:
+                                found.setdefault(key, el)
+                    if not only_groups or role in ("AXGroup", "AXToolbar", "AXSplitGroup", None):
+                        nxt.extend(E.children(el))
+                level, depth = nxt, depth + 1
+            return found if len(found) == len(self.PLUGIN_CONTROLS) else None
+        # Quick look through Pro Tools' own groups first; the whole window only if that misses.
+        ctl = search(True) or search(False)
+        cache[w] = (ctl, now)
+        return ctl
 
     def open_window_bypassed(self, track, letter):
         """True/False from the Bypass button of the open plug-in window for this track's insert
@@ -979,14 +1050,14 @@ class Runner:
         for w in wins:
             if not str(w.attr("AXTitle") or "").startswith("Plug-in:"):
                 continue
-            try:
-                on = str(E.find_one(w, "popup", "Track Selector").attr("AXValue") or "")
-                slot = str(E.find_one(w, "popup", "Insert Position selector").attr("AXValue") or "")
-                if on != track or slot.strip().upper() != letter:
-                    continue
-                v = E.find_one(w, "button", "Effect Bypass").attr("AXValue")
-            except E.NotFound:
+            ctl = self._plugin_controls(w)
+            if not ctl:
                 continue
+            on = str(ctl["track"].attr("AXValue") or "")
+            slot = str(ctl["slot"].attr("AXValue") or "")
+            if on != track or slot.strip().upper() != letter:
+                continue
+            v = ctl["bypass"].attr("AXValue")
             # Pro Tools marks a pressed toggle as 'Selected' (nothing when it's off).
             return str(v or "").lower() in ("selected", "on", "1", "true", "bypassed")
         return None

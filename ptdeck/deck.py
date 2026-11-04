@@ -739,17 +739,58 @@ class DeckController:
                 changed.append(k)
         return changed
 
+    # After a key press, leave Pro Tools alone this long before reading the live keys, so it can
+    # finish what the key asked for (moving the selection, opening a window...) first.
+    # Quick repeated presses get one read, after the last one.
+    QUIET_AFTER_PRESS = 0.5
+    SLOW_READ = 0.3              # log live reads slower than this (seconds)
+    _quiet_until = 0.0
+    _poke = False
+
+    def _after_press(self):
+        self._quiet_until = time.time() + self.QUIET_AFTER_PRESS
+        self._poke = True
+
     def _live_loop(self):
+        next_at = 0.0
         while not self._stop.is_set():
-            waiting = time.time() < float(getattr(self.runner, "hold_live_until", 0) or 0)
-            time.sleep(0.4 if waiting else 1.0)
+            time.sleep(0.1)
+            now = time.time()
+            if now < self._quiet_until or self.busy or not self.jobs.empty():
+                continue
+            fresh = self._poke
+            if not fresh and now < next_at:
+                continue
+            self._poke = False
+            waiting = now < float(getattr(self.runner, "hold_live_until", 0) or 0)
             try:
                 page = self.page
-                for k in self.poll_live():
+                t0 = time.time()
+                changed = self.poll_live(fresh=fresh)
+                took = time.time() - t0
+                if took > self.SLOW_READ and time.time() - getattr(self, "_slow_said", 0) > 30:
+                    self._slow_said = time.time()
+                    self.log(f"live keys: reading Pro Tools took {took:.1f}s (page '{page}')")
+                for k in changed:
                     if self.page == page and self.jobs.empty() and not self.busy:
                         self.draw(k)
             except Exception as e:  # noqa: BLE001
                 self.log(f"✗ live keys: {e}")
+            next_at = time.time() + (0.4 if waiting else 1.0)
+
+    def _flash(self, page, key, state):
+        """Show ok/error on the key, then back to normal, without holding up the next press."""
+        token = object()
+        self._flashes = getattr(self, "_flashes", {})
+        self._flashes[(page, key)] = token
+        self.draw(key, state)
+
+        def back():
+            if self.page == page and self._flashes.get((page, key)) is token:
+                self.draw(key, "idle")
+        t = threading.Timer(0.4 if state == "ok" else 2.0, back)
+        t.daemon = True
+        t.start()
 
     def _worker(self):
         while not self._stop.is_set():
@@ -759,6 +800,7 @@ class DeckController:
                 continue
             same = lambda: self.page == page  # noqa: E731
             if same():
+                getattr(self, "_flashes", {}).pop((page, key), None)    # cancel an earlier flash
                 self.draw(key, "running")
             from . import results
             try:
@@ -775,17 +817,9 @@ class DeckController:
                 state = "error"
                 results.record_run(self.base, name, False, str(e))
             self.busy = False
-            try:   # show the result on the live keys straight away
-                for k in self.poll_live(fresh=True):
-                    if same() and k != key:
-                        self.draw(k)
-            except Exception:  # noqa: BLE001
-                pass
+            self._after_press()        # the live keys catch up once Pro Tools has settled
             if same():
-                self.draw(key, state)
-                time.sleep(0.4 if state == "ok" else 2.0)
-                if same():
-                    self.draw(key, "idle")
+                self._flash(page, key, state)
 
     def _watch(self):
         while not self._stop.is_set():

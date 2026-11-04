@@ -167,6 +167,11 @@ class MacSystem:
         self._midi_ports[match].send(mido.Message("control_change", channel=channel - 1, control=cc, value=value))
 
     def activate(self):
+        # Already in front: nothing to do. (Activating again costs Pro Tools a round trip,
+        # and can move key focus between its windows.)
+        front = NSWorkspace.sharedWorkspace().frontmostApplication()
+        if front and front.bundleIdentifier() == PRO_TOOLS:
+            return
         app = self._running()
         app.activateWithOptions_(1 << 1)  # ignore other apps
         self.app().set_attr("AXFrontmost", True)

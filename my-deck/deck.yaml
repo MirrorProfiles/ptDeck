@@ -61,7 +61,8 @@ pages:
 
     Latency
 
-    Monitoring', macro: Low Latency Monitoring, color: '#606060'}
+    Monitoring', macro: Low Latency Monitoring, color: '#606060', lit menu: Options > Low Latency Monitoring,
+      lit color: '#b8342a'}
     - {key: 15, label: 'Buffer
 
     128', macro: Buffer 128, color: '#606060'}
@@ -82,6 +83,7 @@ pages:
     - {key: 27, icon: folder-mixing.png, folder: Mixing, outline: none}
     - {key: 28, icon: vu-meter.png, macro: open-vu-meter}
     - {key: 29, icon: folder-solo-modes.png, folder: SOLO MODES, outline: none}
+    - {key: 30, icon: folder-editing.png, folder: Editing, outline: none}
     - {key: 31, label: Print Stems, icon: iconapp-fmusic-26.png, macro: Open fMusic, color: '#202020'}
     - {key: 32, icon: folder-bounce-mix.png, folder: Bounce Mix, outline: none}
 
@@ -94,7 +96,8 @@ pages:
     - {key: 14, label: Rearrange inserts to beginning, macro: Rearrange inserts to beginning}
     - {key: 15, label: Remove Inactive Plugins from Session, macro: remove-inactive-plugins-from-session}
     - {key: 16, label: Delete Empty Audio Tracks in Selection, macro: delete-empty-audio-tracks-in-selection}
-    - {key: 17, label: Narrow Mix View Toggle, macro: Narrow Mix View Toggle}
+    - {key: 17, label: Narrow Mix View Toggle, macro: Narrow Mix View Toggle, lit menu: View > Narrow Mix*,
+      lit color: '#2f6fb0'}
     - {key: 20, label: Mono Track to Stereo, macro: Stereo}
     - {key: 21, label: Mouth De-Click, macro: rx-mouth-de-click}
     - {key: 22, label: De-plosive, macro: rx-de-plosive}
@@ -350,8 +353,39 @@ pages:
     Keep Source', macro: Commit - Entire Track - Realtime - Do Nothing, color: '#5a3a6a'}
 
   SOLO MODES:
-    - {key: 27, icon: afl-xor.png, macro: AFL X-OR}
-    - {key: 28, icon: sip-xor.png, macro: SIP X-OR}
-    - {key: 29, icon: sip-latch.png, macro: SIP Latch}
+    - {key: 27, icon: afl-xor.png, macro: AFL X-OR, lit menu: ['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*'], lit outline: '#f2c230'}
+    - {key: 28, icon: sip-xor.png, macro: SIP X-OR, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > X-OR*'], lit outline: '#f2c230'}
+    - {key: 29, icon: sip-latch.png, macro: SIP Latch, lit menu: ['Options > Solo Mode > SIP*', 'Options > Solo Mode > Latch*'], lit outline: '#f2c230'}
+    - {key: 30, label: SIP, lit label: AFL, macro: CHP Solo SIP AFL, color: '#5c4f12', lit color: '#a8901c',
+      lit menu: 'Options > Solo Mode > AFL*', glyph: headphones}
 
   Vocal Tracking: []
+
+  Editing:
+    - {key: 9, label: 'Clip\nName', macro: CHP Clip Name, color: '#3a3f46', glyph: text,
+      lit menu: 'View > Clip > Name', lit color: '#2a8f8a'}
+    - {key: 10, label: 'Clip Gain\nInfo', macro: CHP Clip Info, color: '#3a3f46', glyph: flag,
+      lit menu: 'View > Clip > Clip Gain Info*', lit color: '#2a8f8a'}
+    - {key: 11, label: 'Clip Gain\nLine', macro: CHP Clip Line, color: '#3a3f46', glyph: fade,
+      lit menu: 'View > Clip > Clip Gain Line*', lit color: '#2a8f8a'}
+    - {key: 12, label: 'Clip\nEffects', macro: CHP Clip Effects, color: '#3a3f46', glyph: eq,
+      lit menu: 'View > Other Displays > Clip Effects*', lit color: '#2a8f8a'}
+    - {key: 14, label: 'Clip Gain\nto Volume', macro: CHP Clip To Volume, color: '#4b3a5e', glyph: arrow-down}
+    - {key: 15, label: 'Volume\nto Clip Gain', macro: CHP Volume To Clip, color: '#4b3a5e', glyph: arrow-up}
+    - {key: 16, label: 'Show\nVolume', macro: CHP Volume Auto, color: '#4b3a5e', glyph: waveform}
+    - {key: 17, label: 'Comments', macro: CHP View Comments, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Comments*', lit color: '#2f6fb0'}
+    - {key: 18, label: 'I/O', macro: CHP View I/O, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > I/O*', lit color: '#2f6fb0'}
+    - {key: 19, label: 'Instrument', macro: CHP View Inst, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Instrument*', lit color: '#2f6fb0'}
+    - {key: 20, label: 'Inserts\nA-E', macro: CHP View Inserts A-E, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Inserts A-E*', lit color: '#2f6fb0'}
+    - {key: 21, label: 'Inserts\nF-J', macro: CHP View Inserts F-J, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Inserts F-J*', lit color: '#2f6fb0'}
+    - {key: 22, label: 'Sends\nA-E', macro: CHP View Sends A-E, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Sends A-E*', lit color: '#2f6fb0'}
+    - {key: 23, label: 'Sends\nF-J', macro: CHP View Sends F-J, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Sends F-J*', lit color: '#2f6fb0'}
+    - {key: 24, label: 'Real-Time\nProperties', macro: CHP View Real Time Props, color: '#3a3f46', glyph: eye,
+      lit menu: 'View > Edit Window Views > Real-Time Properties*', lit color: '#2f6fb0'}

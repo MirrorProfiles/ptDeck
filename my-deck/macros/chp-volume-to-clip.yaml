@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Converts volume automation into clip gain on the selected clips.
+name: CHP Volume To Clip
+steps:
+- activate: Pro Tools
+- menu: Edit > Automation > Convert Volume Automation to Clip Gain

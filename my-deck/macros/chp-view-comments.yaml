@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Comments (View > Edit Window Views > Comments*).
+name: CHP View Comments
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > Comments*

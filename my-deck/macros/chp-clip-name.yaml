@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Name (View > Clip > Name).
+name: CHP Clip Name
+steps:
+- activate: Pro Tools
+- menu: View > Clip > Name

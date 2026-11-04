@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Clip Gain Line (View > Clip > Clip Gain Line*).
+name: CHP Clip Line
+steps:
+- activate: Pro Tools
+- menu: View > Clip > Clip Gain Line*

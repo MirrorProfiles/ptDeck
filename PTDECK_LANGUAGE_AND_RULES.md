@@ -327,6 +327,7 @@ page settings:
 | `lit color` | Background while lit |
 | `lit label` | Label while lit (default: the normal label) |
 | `lit text color` | Label colour while lit |
+| `lit outline` | Outline colour while lit; use it on picture keys, where a lit background is hidden by the picture |
 | `corner` | Small label top-left (live insert keys use the slot letter) |
 | `live` | Insert slot 1–10 to show live: plug-in name and state (active, bypassed, inactive, open) |
 | `live track` | Track for `live`: a name, `selected`, or `(PRINT)` (default) |

@@ -264,3 +264,13 @@ def test_lit_menu_list_needs_every_item_ticked(tmp_path):
     items["Latch"].a["AXMenuItemMarkChar"] = None
     items["X-OR (Cancels Previous Solo)"].a["AXMenuItemMarkChar"] = "✓"
     assert c.poll_menus(fresh=True) == [0] and c.shown(0, c.slots[0])["color"] == "#ffaa00"
+
+
+def test_lit_outline_shows_on_picture_keys(tmp_path):
+    from PIL import Image
+    (tmp_path / "icons").mkdir()
+    Image.new("RGB", (96, 96), (10, 10, 10)).save(tmp_path / "icons" / "pic.png")
+    b = {"icon": "pic.png", "macro": "x", "lit menu": "View > Clip > Name", "lit outline": "#22b8f0"}
+    off = D.render(D.lit_button(b, False), 96, tmp_path)
+    on = D.render(D.lit_button(b, True), 96, tmp_path)
+    assert off.getpixel((5, 48)) == (10, 10, 10) and on.getpixel((5, 48)) == (34, 184, 240)

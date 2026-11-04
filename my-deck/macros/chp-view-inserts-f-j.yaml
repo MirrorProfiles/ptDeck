@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Inserts F-J (View > Edit Window Views > Inserts F-J*).
+name: CHP View Inserts F-J
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > Inserts F-J*

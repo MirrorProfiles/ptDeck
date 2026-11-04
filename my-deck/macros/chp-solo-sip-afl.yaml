@@ -1,0 +1,10 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Switches the solo mode between SIP (solo in place) and AFL.
+name: CHP Solo SIP AFL
+steps:
+- activate: Pro Tools
+- if menu: Options > Solo Mode > AFL*
+  then:
+  - menu: Options > Solo Mode > SIP*
+  else:
+  - menu: Options > Solo Mode > AFL*

@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Sends F-J (View > Edit Window Views > Sends F-J*).
+name: CHP View Sends F-J
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > Sends F-J*

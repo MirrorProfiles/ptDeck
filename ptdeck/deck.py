@@ -18,7 +18,7 @@ MODELS = {
 
 BUTTON_FIELDS = {"label", "macro", "folder", "back", "home", "icon", "color", "text color",
                  "key", "font size", "note", "outline", "live", "live track", "corner", "metric", "metric ab", "glyph", "style", "audiosuite", "live name", "font", "strip", "strip color", "strip text color", "color bar", "if empty", "metric toggle",
-                 "lit menu", "lit color", "lit label", "lit text color", "gradient", "palette color"}
+                 "lit menu", "lit color", "lit label", "lit text color", "lit outline", "gradient", "palette color"}
 
 FONT_PATHS = [
     "/System/Library/Fonts/SFNS.ttf",
@@ -607,7 +607,7 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
         cf = font(max(9, size // 8))
         d.text((max(3, size // 18), max(2, size // 24) + bar), str(button["corner"]), fill="#9fb6cc", font=cf)
     if (button.get("folder") or button.get("folder_outline")) and button.get("outline") != "none":
-        w = max(2, size // 36)
+        w = max(3, size // 12) if button.get("_lit_outline") else max(2, size // 36)   # lit: easy to see
         d.rounded_rectangle([w // 2 + 1, w // 2 + 1, size - w // 2 - 2, size - w // 2 - 2],
                             radius=size // 10, outline=button.get("outline", "#d8d8d8"), width=w)
     ring = {"running": "#ffcc00", "ok": "#33dd66", "error": "#ff3333"}.get(state)
@@ -652,6 +652,8 @@ def lit_button(button: dict, on) -> dict:
         out["label"] = button["lit label"]
     if button.get("lit text color"):
         out["text color"] = button["lit text color"]
+    if button.get("lit outline"):          # shows on picture keys too, where a background can't
+        out["outline"], out["folder_outline"], out["_lit_outline"] = button["lit outline"], True, True
     return out
 
 

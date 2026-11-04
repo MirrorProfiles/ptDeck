@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Toggles the volume track view on every track (Option + minus).
+name: CHP Volume Auto
+steps:
+- activate: Pro Tools
+- press: option+minus

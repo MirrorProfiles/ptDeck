@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides I/O (View > Edit Window Views > I/O*).
+name: CHP View I/O
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > I/O*

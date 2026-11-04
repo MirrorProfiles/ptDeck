@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Inserts A-E (View > Edit Window Views > Inserts A-E*).
+name: CHP View Inserts A-E
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > Inserts A-E*

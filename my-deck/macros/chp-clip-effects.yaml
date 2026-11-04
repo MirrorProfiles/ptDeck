@@ -1,0 +1,11 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Clip Effects (View > Other Displays, or Option + numpad 6).
+name: CHP Clip Effects
+steps:
+- activate: Pro Tools
+- if menu: View > Other Displays > Clip Effects*
+  ticked: any
+  then:
+  - menu: View > Other Displays > Clip Effects*
+  else:
+  - press: option+numpad 6

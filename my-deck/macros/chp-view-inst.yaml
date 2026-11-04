@@ -1,0 +1,6 @@
+# Made for CHP (Chris's deck, recreated from his SoundFlow deck by tools/make_chp_deck.py)
+# Shows or hides Instrument (View > Edit Window Views > Instrument*).
+name: CHP View Inst
+steps:
+- activate: Pro Tools
+- menu: View > Edit Window Views > Instrument*

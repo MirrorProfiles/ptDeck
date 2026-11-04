@@ -364,6 +364,29 @@ def home_title():
         img.save(OUT / f"home-title-{i + 2}.png")
 
 
+def art_editing(d, img, box):
+    """An audio clip: name bar, waveform, and a yellow clip-gain line with a breakpoint."""
+    x0, y0, x1, y1 = box
+    r = S * 0.03
+    d.rounded_rectangle([x0, y0, x1, y1], radius=r, fill="#5a6f8c", outline="#c9d4e2", width=5)
+    bar = y0 + (y1 - y0) * 0.2
+    d.rounded_rectangle([x0, y0, x1, bar], radius=r, fill="#3c4c63")
+    d.rectangle([x0 + 3, bar - r, x1 - 3, bar], fill="#3c4c63")
+    cy, amp = (bar + y1) / 2, (y1 - bar) * 0.36
+    n = 90
+    for i in range(n + 1):
+        t = i / n
+        env = math.exp(-((t - 0.32) ** 2) / 0.02) + 0.55 * math.exp(-((t - 0.74) ** 2) / 0.01)
+        a = amp * min(1.0, 0.18 + env) * abs(math.sin(i * 1.7) * 0.6 + math.sin(i * 0.53) * 0.4)
+        x = x0 + (x1 - x0) * (0.04 + 0.92 * t)
+        d.line([(x, cy - a), (x, cy + a)], fill="#e9eef5", width=4)
+    g = [(x0 + (x1 - x0) * 0.04, cy - amp * 0.95), (x0 + (x1 - x0) * 0.55, cy - amp * 0.95),
+         (x0 + (x1 - x0) * 0.7, cy - amp * 0.35), (x0 + (x1 - x0) * 0.96, cy - amp * 0.35)]
+    d.line(g, fill="#f2c230", width=8, joint="curve")
+    bx, by = g[2]
+    d.ellipse([bx - 13, by - 13, bx + 13, by + 13], fill="#f2c230", outline="#3c4c63", width=4)
+
+
 def art_solo(d, img, box):
     """Pro Tools' solo button: a yellow rounded square with an S."""
     x0, y0, x1, y1 = box
@@ -458,4 +481,5 @@ if __name__ == "__main__":
     folder_frame("#a8901c", "SOLO MODES", art_solo).save(OUT / "folder-solo-modes.png")
     cabinetron()
     folder_frame("#b0472c", "MIXING", art_vu).save(OUT / "folder-mixing.png")
+    folder_frame("#2a8f8a", "EDITING", art_editing).save(OUT / "folder-editing.png")
     print("done")

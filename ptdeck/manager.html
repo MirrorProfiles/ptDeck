@@ -82,6 +82,7 @@ dialog::backdrop { background:rgba(0,0,0,.6); }
   <span id="deck-status"></span>
   <span style="flex:1"></span>
   <button id="pl-open" title="Make buttons that add a plug-in to the first free insert">Plug-in buttons…</button>
+  <button id="restart" title="Restart PT Deck so it picks up new code (after you pull an update)">Restart PT Deck</button>
   <button id="install">Install update…</button><input type="file" id="install-file" accept=".zip" hidden>
   <button id="page-add">New page</button>
   <button id="page-rename">Rename page</button>
@@ -498,6 +499,15 @@ $("#clear-key").onclick = async () => { if (!confirm("Clear this key?")) return;
 $("#test-key").onclick = () => testMacro($("#macro").value.trim());
 $("#edit-key").onclick = () => { const n = $("#macro").value.trim(); if (n) openEditor(n); };
 $("#m-filter").onchange = drawMacros; $("#m-search").oninput = drawMacros;
+$("#restart").onclick = async () => {
+  try {
+    await api("/api/restart", {});
+    toast("Restarting PT Deck…", 8000);
+    setTimeout(async function wait() {
+      try { await api("/api/state"); location.reload(); } catch { setTimeout(wait, 1000); }
+    }, 3000);
+  } catch (err) { toast(err.message, 6000); }
+};
 $("#install").onclick = () => $("#install-file").click();
 $("#install-file").onchange = async e => {
   const f = e.target.files[0]; if (!f) return;

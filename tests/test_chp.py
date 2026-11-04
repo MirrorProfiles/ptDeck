@@ -5,7 +5,9 @@ from pathlib import Path
 
 import yaml
 
+import pytest
 from ptdeck import deck as D
+from ptdeck import elements as E
 from ptdeck.macros import Library, Runner, validate
 
 from test_ptdeck import El, FakeSys, make_app, lib_with
@@ -311,3 +313,95 @@ def test_midi_cc_is_remembered_and_if_remembered_branches(tmp_path):
     assert sent[-1] == ("P", 1, 88, 0) and settings.get(tmp_path, "midi ch1 cc88") == 0
     r.run("Toggle")
     assert sent[-1][3] == 127
+
+
+# ---------- clip color ----------
+
+def palette_window():
+    """The Color Palette window as Chris's inspect output shows it: a target pop-up, then a table of
+    3 rows x 23 swatch buttons (plus duplicate AXColumn children, which must be ignored)."""
+    target = El("AXPopUpButton", None, value="Tracks", AXDescription="ColorPaletteSelectorView")
+    rows = [El("AXRow", None, [El("AXCell", None, [El("AXButton", f"Swatch {r * 23 + c + 1}")])
+                               for c in range(23)]) for r in range(3)]
+    table = El("AXTable", None, rows + [El("AXColumn", None, [])], AXDescription="Color Palette View")
+    win = El("AXWindow", "Color Palette", [target, El("AXButton", "HOLD"), El("AXScrollArea", None, [table])])
+    return win, target, rows
+
+
+def test_clip_colour_colours_every_clip_on_each_track(tmp_path):
+    from test_ptdeck import FakePTSL, menu_on_press
+    win, target, rows = palette_window()
+    app = make_app([win])
+    items = []
+    for title in ("Tracks", "Clips in Tracks", "Clips in Clips List"):
+        item = El("AXMenuItem", title)
+        item.on_press = (lambda t=title: target.set_attr("AXValue", t))
+        items.append(item)
+    menu_on_press(app, target, El("AXMenu", None, items))
+    order = []
+    pt = FakePTSL()
+    pt.run = lambda cmd, body=None, timeout=None: (pt.sent.append((cmd, body)), order.append(cmd))
+    sysm = FakeSys(app)
+    sysm.ptsl = lambda: pt
+    swatch = E.children(E.children(rows[1])[7])[0]           # palette 31 = medium row, 8th swatch
+    swatch.on_press = lambda: order.append(("swatch", target.attr("AXValue")))
+    lib = lib_with(tmp_path, m="steps:\n- track color: 31\n- clip color: 31\n")
+    Runner(sysm, lib, log=lambda m: None).run("m")
+    assert pt.sent[0] == ("SetTrackColor", {"track_names": ["Kick", "Snare"], "color_index": 31})
+    assert pt.sent[1:] == [("SelectAllClipsOnTrack", {"track_name": "Kick"}),
+                           ("SelectAllClipsOnTrack", {"track_name": "Snare"})]
+    assert order[1:] == ["SelectAllClipsOnTrack", ("swatch", "Clips in Tracks"),
+                         "SelectAllClipsOnTrack", ("swatch", "Clips in Tracks")]
+    assert target.attr("AXValue") == "Tracks"                  # put back the way it was
+    assert swatch.presses == 2
+
+
+def test_clip_colour_rejects_a_colour_the_palette_hasnt_got(tmp_path):
+    from test_ptdeck import FakePTSL
+    win, _, _ = palette_window()
+    sysm = FakeSys(make_app([win]))
+    sysm.ptsl = lambda: FakePTSL()
+    lib = lib_with(tmp_path, m="steps:\n- clip color: 99\n")
+    with pytest.raises(Exception, match="no Pro Tools colour 99"):
+        Runner(sysm, lib, log=lambda m: None).run("m")
+
+
+# ---------- PT Deck.app's starter ----------
+
+def test_app_falls_back_to_the_simple_starter(tmp_path, monkeypatch):
+    from ptdeck import menubar as MB
+    monkeypatch.setattr(MB, "build_launcher", lambda exe, log=print: False)
+    monkeypatch.setattr(MB, "_make_icns", lambda p: None)
+    app = MB.make_app(tmp_path, log=lambda m: None)
+    exe = app / "Contents" / "MacOS" / "PT Deck"
+    assert exe.read_text().startswith("#!/bin/bash") and "-m ptdeck menubar" in exe.read_text()
+    assert not (exe.parent / "PT Deck.new").exists()
+
+
+def test_restart_goes_through_the_apps_own_program(monkeypatch):
+    from ptdeck import menubar as MB
+    monkeypatch.delenv("PTDECK_LAUNCHER", raising=False)
+    assert MB.self_command("menubar")[1:] == ["-m", "ptdeck", "menubar"]
+    assert MB.shown_as() == "python3"
+    monkeypatch.setenv("PTDECK_LAUNCHER", "/x/PT Deck.app/Contents/MacOS/PT Deck")
+    assert MB.self_command("menubar") == ["/x/PT Deck.app/Contents/MacOS/PT Deck", "-m", "ptdeck", "menubar"]
+    assert MB.shown_as() == "PT Deck"
+
+
+def test_starter_runs_pt_deck_inside_the_app():
+    from ptdeck import menubar as MB
+    for must in ('"-m", "ptdeck", "menubar"', "PTDECK_LAUNCHER", "/.venv/bin/python", "ptdeck-app.log",
+                 "Py_RunMain"):
+        assert must in MB.LAUNCHER_C
+
+
+def test_restart_reopens_the_app(monkeypatch):
+    from ptdeck import menubar as MB
+    calls = []
+    monkeypatch.setattr(MB.subprocess, "Popen", lambda cmd, **kw: calls.append(cmd))
+    monkeypatch.delenv("PTDECK_LAUNCHER", raising=False)
+    assert MB.relaunch_app() is False and calls == []
+    monkeypatch.setenv("PTDECK_LAUNCHER", "/x/PT Deck.app/Contents/MacOS/PT Deck")
+    assert MB.relaunch_app() is True
+    assert "open -n" in calls[0][2] and calls[0][3].endswith("PT Deck.app")
+    assert "execv" not in MB.LAUNCHER_C        # the app runs PT Deck in its own process

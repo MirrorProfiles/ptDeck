@@ -541,7 +541,11 @@ class Manager:
         def go():
             time.sleep(1.0)
             os.chdir(self.base)
-            os.execv(sys.executable, [sys.executable, "-m", "ptdeck", *sys.argv[1:]])
+            from .menubar import relaunch_app, self_command
+            if relaunch_app():
+                os._exit(0)
+            cmd = self_command(*sys.argv[1:])
+            os.execv(cmd[0], cmd)
         threading.Thread(target=go, daemon=True).start()
 
     def new_macro(self, name):
@@ -673,6 +677,9 @@ def make_handler(mgr: Manager):
                     return self.send(200, {"name": mgr.save_icon(body["name"], body["data"])})
                 elif p == "/api/verdict":
                     results.set_verdict(mgr.base, body["name"], body.get("verdict"))
+                elif p == "/api/restart":
+                    mgr.log("Restarting PT Deck (Manager's Restart button)…")
+                    mgr.restart_soon()
                 elif p == "/api/run":
                     mgr.run_macro(body["name"])
                 else:

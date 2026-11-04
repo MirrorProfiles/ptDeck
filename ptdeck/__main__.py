@@ -65,7 +65,7 @@ def stop_other_copies() -> int:
     import signal
     me = os.getpid()
     try:
-        out = subprocess.run(["pgrep", "-f", r"[-]m ptdeck (start|manager|menubar)"], capture_output=True,
+        out = subprocess.run(["pgrep", "-f", r"[-]m ptdeck (start|manager|menubar)|PT Deck[.]app/Contents/MacOS/PT Deck"], capture_output=True,
                              text=True, timeout=5).stdout
     except Exception:  # noqa: BLE001
         return 0

@@ -21,16 +21,60 @@ BUNDLE_ID = "com.easstudios.ptdeck"
 
 # ---------- the app bundle ----------
 
-def make_app(base: Path = BASE, log=print) -> Path:
-    """Create 'PT Deck.app' next to PT Deck's files: a menu bar app (no Dock icon) that starts
-    PT Deck with this folder's Python. Safe to run again (e.g. after an update)."""
-    app = base / "PT Deck.app"
-    macos = app / "Contents" / "MacOS"
-    res = app / "Contents" / "Resources"
-    macos.mkdir(parents=True, exist_ok=True)
-    res.mkdir(parents=True, exist_ok=True)
-    exe = macos / "PT Deck"
-    exe.write_text('''#!/bin/bash
+LAUNCHER_C = r"""
+/* PT Deck.app's own program: runs PT Deck's Python inside this app, so macOS treats PT Deck as
+   an app (its menu bar icon is shown; permissions are listed as "PT Deck"). Made by make-app. */
+#include <Python.h>
+#include <mach-o/dyld.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+
+int main(int argc, char **argv) {
+    char exe[PATH_MAX], real[PATH_MAX];
+    uint32_t n = sizeof exe;
+    if (_NSGetExecutablePath(exe, &n) != 0 || !realpath(exe, real)) return 1;
+    char *menubar[] = {real, "-m", "ptdeck", "menubar", NULL};
+    if (argc < 2) {                       /* opened from Finder: run the menu bar app, in this */
+        argc = 4;                         /* same process (handing over with exec loses the icon) */
+        argv = menubar;
+    }
+    char base[PATH_MAX];                  /* .../chp/PT Deck.app/Contents/MacOS/PT Deck -> .../chp */
+    strncpy(base, real, sizeof base - 1); base[sizeof base - 1] = 0;
+    for (int i = 0; i < 4; i++) { char *s = strrchr(base, '/'); if (!s) return 1; *s = 0; }
+    if (chdir(base) != 0) return 1;
+    char py[PATH_MAX], logp[PATH_MAX], path[PATH_MAX * 2];
+    snprintf(py, sizeof py, "%s/.venv/bin/python", base);
+    if (access(py, X_OK) != 0) {
+        system("osascript -e 'display alert \"PT Deck isn'\\''t installed yet\" message "
+               "\"Double-click Install.command in the PT Deck folder first.\"'");
+        return 1;
+    }
+    snprintf(logp, sizeof logp, "%s/ptdeck-app.log", base);
+    freopen(logp, "a", stdout);
+    freopen(logp, "a", stderr);
+    setenv("PTDECK_LAUNCHER", real, 1);   /* PT Deck restarts itself through this program */
+    snprintf(path, sizeof path, "%s:%s/.venv/lib/python%d.%d/site-packages", base, base,
+             PY_MAJOR_VERSION, PY_MINOR_VERSION);
+    setenv("PYTHONPATH", path, 1);
+
+    PyStatus st;
+    PyConfig c;
+    PyConfig_InitPythonConfig(&c);
+    c.buffered_stdio = 0;
+    st = PyConfig_SetBytesString(&c, &c.executable, py);   /* finds the .venv (pyvenv.cfg) */
+    if (!PyStatus_Exception(st)) st = PyConfig_SetBytesString(&c, &c.program_name, py);
+    if (!PyStatus_Exception(st)) st = PyConfig_SetBytesArgv(&c, argc, argv);
+    if (!PyStatus_Exception(st)) st = Py_InitializeFromConfig(&c);
+    PyConfig_Clear(&c);
+    if (PyStatus_Exception(st)) Py_ExitStatusException(st);
+    return Py_RunMain();
+}
+"""
+
+LAUNCHER_SH = """#!/bin/bash
 # Starts PT Deck from the folder this app sits in.
 DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
 cd "$DIR" || exit 1
@@ -39,8 +83,74 @@ if [ ! -x .venv/bin/python ]; then
   exit 1
 fi
 exec "$DIR/.venv/bin/python" -m ptdeck menubar >> "$DIR/ptdeck-app.log" 2>&1
-''', encoding="utf-8")
-    exe.chmod(0o755)
+"""
+
+
+def _python_config() -> list[str]:
+    """Compiler flags for embedding this Python (from python3.X-config), or [] if not found."""
+    import shutil
+    import sysconfig
+    ver = sysconfig.get_config_var("VERSION") or f"{sys.version_info[0]}.{sys.version_info[1]}"
+    for cand in (Path(sys.base_prefix) / "bin" / f"python{ver}-config", shutil.which(f"python{ver}-config"),
+                 "/opt/homebrew/bin/python3.12-config", "/usr/local/bin/python3.12-config"):
+        if cand and Path(cand).exists():
+            out = subprocess.run([str(cand), "--embed", "--cflags", "--ldflags"], capture_output=True,
+                                 text=True, timeout=20)
+            if out.returncode == 0 and out.stdout.strip():
+                return out.stdout.split()
+    return []
+
+
+def build_launcher(exe: Path, log=print) -> bool:
+    """Compile PT Deck.app's own program (needs Apple's command line tools, which Homebrew installs).
+    Returns False, having changed nothing, if it can't."""
+    import tempfile
+    if sys.platform != "darwin":
+        return False
+    if subprocess.run(["xcode-select", "-p"], capture_output=True).returncode != 0:
+        log("(PT Deck.app uses a simple starter: Apple's command line tools aren't installed)")
+        return False
+    flags = _python_config()
+    if not flags:
+        log("(PT Deck.app uses a simple starter: couldn't find python3.12-config)")
+        return False
+    with tempfile.TemporaryDirectory() as tmp:
+        src, out = Path(tmp) / "launcher.c", Path(tmp) / "PT Deck"
+        src.write_text(LAUNCHER_C, encoding="utf-8")
+        res = subprocess.run(["cc", "-O2", "-Wno-unused-result", str(src), "-o", str(out), *flags],
+                             capture_output=True, text=True, timeout=120)
+        if res.returncode != 0 or not out.exists():
+            log("(PT Deck.app uses a simple starter: building its own program failed: "
+                + (res.stderr.strip().splitlines() or ["?"])[-1] + ")")
+            return False
+        tmp_exe = exe.with_name(exe.name + ".new")
+        shutil_copy(out, tmp_exe)
+        os.replace(tmp_exe, exe)          # safe even while PT Deck.app is running
+    return True
+
+
+def shutil_copy(a: Path, b: Path):
+    import shutil
+    shutil.copy2(a, b)
+    b.chmod(0o755)
+
+
+def make_app(base: Path = BASE, log=print) -> Path:
+    """Create 'PT Deck.app' next to PT Deck's files: a menu bar app (no Dock icon) that runs
+    PT Deck with this folder's Python. Safe to run again (e.g. after an update)."""
+    app = base / "PT Deck.app"
+    macos = app / "Contents" / "MacOS"
+    res = app / "Contents" / "Resources"
+    macos.mkdir(parents=True, exist_ok=True)
+    res.mkdir(parents=True, exist_ok=True)
+    exe = macos / "PT Deck"
+    if build_launcher(exe, log=log):
+        log("PT Deck.app runs PT Deck itself (menu bar icon and permissions show as 'PT Deck').")
+    else:
+        tmp_exe = exe.with_name(exe.name + ".new")
+        tmp_exe.write_text(LAUNCHER_SH, encoding="utf-8")
+        tmp_exe.chmod(0o755)
+        os.replace(tmp_exe, exe)
     info = {
         "CFBundleName": "PT Deck", "CFBundleDisplayName": "PT Deck", "CFBundleIdentifier": BUNDLE_ID,
         "CFBundleExecutable": "PT Deck", "CFBundlePackageType": "APPL", "CFBundleVersion": "1",
@@ -146,8 +256,30 @@ def permissions() -> dict:
 
 
 def python_path() -> str:
-    """The real Python program running PT Deck (what macOS lists as 'python3')."""
-    return os.path.realpath(sys.executable)
+    """The program macOS gives permissions to: PT Deck.app's own program, or the real Python."""
+    return os.environ.get("PTDECK_LAUNCHER") or os.path.realpath(sys.executable)
+
+
+def shown_as() -> str:
+    """The name PT Deck has in System Settings' lists."""
+    return "PT Deck" if os.environ.get("PTDECK_LAUNCHER") else "python3"
+
+
+def relaunch_app() -> bool:
+    """When PT Deck runs as PT Deck.app, restart by opening the app again a moment after this copy
+    quits (a restart that hands over with exec loses the menu bar icon). The caller then exits."""
+    if not os.environ.get("PTDECK_LAUNCHER"):
+        return False
+    subprocess.Popen(["/bin/sh", "-c", 'sleep 1; /usr/bin/open -n "$0"', str(APP)], start_new_session=True,
+                     stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return True
+
+
+def self_command(*args) -> list[str]:
+    """The command that starts PT Deck again the way it is running now (through PT Deck.app's own
+    program when it started that way, so the menu bar icon still shows after a restart)."""
+    launcher = os.environ.get("PTDECK_LAUNCHER")
+    return [launcher or sys.executable, "-m", "ptdeck", *args]
 
 
 def ask_for(name: str):
@@ -191,8 +323,8 @@ def run():
     if not system.has_permission(prompt=True):
         M.log("PT Deck needs Accessibility permission: see the menu bar icon > Permissions.")
     if not permissions().get("Screen Recording", True):
-        ask_for("Screen Recording")          # adds python3 to Screen Recording's list
-    M.log(f"PT Deck runs as {python_path()} (shown as 'python3' in System Settings)")
+        ask_for("Screen Recording")          # adds PT Deck / python3 to Screen Recording's list
+    M.log(f"PT Deck runs as {python_path()} (shown as '{shown_as()}' in System Settings)")
     runner = Runner(system, M.library(), log=M.log)
     controller = DeckController(DATA, runner, log=M.log)
     if M.start_manager(system, controller):
@@ -209,11 +341,24 @@ def run():
 
     def restart():
         controller.stop()
+        if relaunch_app():
+            os._exit(0)
         os.chdir(BASE)
-        os.execv(sys.executable, [sys.executable, "-m", "ptdeck", "menubar"])
+        cmd = self_command("menubar")
+        os.execv(cmd[0], cmd)
 
     class Delegate(NSObject):
         def applicationDidFinishLaunching_(self, _n):
+            try:
+                self._build()
+                M.log("Menu bar icon added (top right of the screen, near the clock).")
+            except Exception:  # noqa: BLE001 - say why, rather than run on silently with no icon
+                import traceback
+                M.log("Couldn't add the menu bar icon: " + traceback.format_exc().strip().splitlines()[-1])
+                M.log(traceback.format_exc())
+
+        @objc.python_method
+        def _build(self):
             self.item = NSStatusBar.systemStatusBar().statusItemWithLength_(NSVariableStatusItemLength)
             self.item.button().setImage_(icon_off)
             self.item.button().setToolTip_("PT Deck")
@@ -257,11 +402,11 @@ def run():
                 self.perm_menu.addItem_(it)
             self.perm_menu.addItem_(NSMenuItem.separatorItem())
             note = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                "In System Settings, PT Deck appears as \u201cpython3\u201d", None, "")
+                f"In System Settings, PT Deck appears as \u201c{shown_as()}\u201d", None, "")
             note.setEnabled_(False)
             self.perm_menu.addItem_(note)
             show = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                "Not in the list? Show python3 in Finder (drag it into the list)", "showPython:", "")
+                f"Not in the list? Show {shown_as()} in Finder (drag it into the list)", "showPython:", "")
             show.setTarget_(self)
             self.perm_menu.addItem_(show)
             missing = [n for n, ok in perms.items() if not ok]
@@ -287,7 +432,7 @@ def run():
             subprocess.run(["open", SETTINGS_PANES.get(name, SETTINGS_PANES["Accessibility"])])
 
         def showPython_(self, _s):
-            subprocess.run(["open", "-R", python_path()])
+            subprocess.run(["open", "-R", str(APP) if os.environ.get("PTDECK_LAUNCHER") else python_path()])
 
         def toggleLogin_(self, _s):
             set_login(not login_enabled())
@@ -326,4 +471,5 @@ def run():
     app.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
     delegate = Delegate.alloc().init()
     app.setDelegate_(delegate)
+    M.log("Starting the menu bar app…")
     app.run()

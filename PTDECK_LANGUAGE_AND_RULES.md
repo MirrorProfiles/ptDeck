@@ -51,7 +51,7 @@ rebuilt one (`# Rebuilt for PT Deck`). A user's edit of a rebuilt macro starts w
 `# Edited by you (started from PT Deck's rebuilt version)` and always wins.
 
 **Reloading.** Macros are re-read on every press, and deck.yaml within a second of saving.
-Only Python changes need a restart (menu bar icon → Restart).
+Only Python changes need a restart (menu bar icon → Restart, or the Manager's **Restart PT Deck** button).
 
 ## 2. Adding a macro and a key: the process
 
@@ -154,6 +154,7 @@ steps:
 | Step | What it does | Example |
 |---|---|---|
 | `track color:` / `track colour:` | Colours tracks by palette position: a number (1 = the first swatch; `ptdeck colours` shows them), `none` or `default`. A `"#hex"` also works (nearest colour in this Mac's palette) | `track color: 54` |
+| `clip color:` / `clip colour:` | Selects every clip on each track (`tracks:` selected / all / names) and colours them with a palette number or `"#hex"`, through the Color Palette window (opened and closed again if it was closed; its target pop-up is set to "Clips in Tracks" and put back). Leaves the last track's clips selected | `clip color: 31` |
 | `select tracks:` | Selects tracks by name (`all`, or a comma list) | `select tracks: Kick, Snare` |
 | `pro tools:` | Any SDK command by name, settings under `body:` | `pro tools: SaveSession` |
 | `save new version` | Saves, then Save As with the next number (Song.03 → Song.04) | `save new version:` |
@@ -474,6 +475,8 @@ Learned the hard way; each has a workaround in the code.
   list comes from `/Applications/Waves/Plug-Ins V*`.
 - Only one program can drive the Stream Deck. SoundFlow's helper keeps running after its
   window is closed, and it also queries Pro Tools; quit it fully.
+- PTSL can't colour clips (there is no SetClipColor). `clip color:` selects them with PTSL's SelectAllClipsOnTrack and presses a swatch in the Color Palette window with its target pop-up (`ColorPaletteSelectorView`) on "Clips in Tracks". The window's table ("Color Palette View") holds 3 AXRows of 23 swatch buttons, numbered across then down, and also lists AXColumns, which are ignored.
+- macOS (26) hides the menu bar icon of an app whose program hands over to Python (`exec python`): the icon is made but never shown, and the app isn't listed in System Settings > Menu Bar. So `make-app` compiles a small program into PT Deck.app that runs Python inside the app (needs Apple's command line tools, which Homebrew installs); if it can't, the app falls back to the shell starter. The program runs PT Deck in its own process, never handing over with exec (that loses the icon too), and restarts reopen the app (`open -n`) instead of exec'ing (`PTDECK_LAUNCHER` marks this mode), and permissions are then listed as "PT Deck", not "python3".
 
 ## 10. Commands
 

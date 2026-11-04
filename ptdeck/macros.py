@@ -16,7 +16,7 @@ ACTIONS = [
     "activate", "menu", "press", "type", "wait", "wait for window", "wait for",
     "click", "checkbox", "popup", "set text", "click at", "raise window",
     "run macro", "note", "todo",
-    "pro tools", "track color", "track colour", "select tracks",
+    "pro tools", "track color", "track colour", "clip color", "clip colour", "select tracks",
     "midi cc", "open", "quit app", "close window", "slider", "metric slot", "metric ab", "bypass open plugin", "new track preset", "toggle open plugin active", "remove open plugin", "plugin preset", "metric button",
     "plugin window", "insert plugin", "send", "output", "input", "remove inactive",
     "open session folder", "if window", "if menu", "if remembered", "accept dialog", "track menu", "paste", "import io settings", "set buffer size", "bounce dialog", "convert pro-q 3 to 4", "compact inserts", "toggle tce trim", "clear", "bypass plugin", "toggle plugin active",
@@ -441,6 +441,8 @@ class Runner:
             w.perform("AXRaise")
         elif action == "run macro":
             self.run(v, depth + 1)
+        elif action in ("clip color", "clip colour"):
+            self.clip_colour(v, o)
         elif action == "pro tools":
             self.sys.ptsl().run(v, o.get("body") or {})
         elif action == "midi cc":
@@ -2300,6 +2302,80 @@ class Runner:
         settings.put(base, "bounce source", {"type": typ, "name": name})
         self.log(f"    bounce source set to {pick} (remembered)")
         return name, typ
+
+    PALETTE_WINDOW = "Color Palette"
+    CLIP_TARGET = "Clips in Track*"      # the Color Palette's target pop-up item that colours clips
+
+    def palette_index(self, v, pt):
+        """A palette number from 'track color'-style values: 13 or "#3366ff" (nearest)."""
+        from .ptsl import hex_to_rgb, nearest_colour, COLOUR_BASE
+        if str(v).strip().startswith("#"):
+            return nearest_colour(pt.palette(), hex_to_rgb(str(v))) + COLOUR_BASE
+        try:
+            return int(v)
+        except (TypeError, ValueError):
+            raise MacroError(f"clip color needs a number or a colour like '#3366ff' (got {v!r})") from None
+
+    def palette_swatch(self, win, index):
+        """The Color Palette window's swatch button for palette number 'index'. The window is a table:
+        3 rows (bright, medium, dark) of equal length, numbered across then down."""
+        from .ptsl import COLOUR_BASE
+        table = next(iter(E.find_all(win, "AXTable", "Color Palette View", max_depth=3)), None)
+        if table is None:
+            raise E.NotFound("the swatches in the Color Palette window")
+        rows = [c for c in E.children(table) if c.attr("AXRole") == "AXRow"]
+        cells = [E.children(r) for r in rows]
+        cols = len(cells[0]) if cells else 0
+        i = int(index) - COLOUR_BASE
+        if not cols or not 0 <= i < cols * len(rows):
+            raise MacroError(f"there's no Pro Tools colour {index} (the palette has {cols * len(rows)})")
+        cell = cells[i // cols][i % cols]
+        if cell.attr("AXRole") == "AXButton":
+            return cell
+        btn = next((c for c in E.children(cell) if c.attr("AXRole") == "AXButton"), None)
+        if btn is None:
+            raise E.NotFound(f"swatch {index} in the Color Palette window")
+        return btn
+
+    def clip_colour(self, v, o):
+        """clip color: 31  /  "#3366ff"   (tracks: selected | all | names)
+        Selects every clip on each track and colours them through Pro Tools' Color Palette window
+        (PTSL can't colour clips). The window's target is put back, and it's closed if it was closed."""
+        pt = self.sys.ptsl()
+        names = pt.tracks(o.get("tracks", "selected"))
+        if not names:
+            raise PTSLError("no tracks are selected" if str(o.get("tracks", "selected")).lower() == "selected"
+                            else "no tracks to colour")
+        index = self.palette_index(v, pt)
+        opened = False
+        try:
+            win = E.find_window(self.app(), self.PALETTE_WINDOW)
+        except E.NotFound:
+            self.menu(f"Window > {self.PALETTE_WINDOW}*", {})
+            opened = True
+            win = self.until(lambda: E.find_window(self.app(), self.PALETTE_WINDOW), 5, f"window '{self.PALETTE_WINDOW}'")
+        target = self.until(lambda: E.resolve(self.app(), self.PALETTE_WINDOW, None, None, "popup",
+                                              "ColorPaletteSelectorView"), 3, "the Color Palette's target pop-up")
+        before = str(target.attr("AXValue") or "")
+        swatch = self.palette_swatch(win, index)        # checks the colour exists before changing anything
+        switched = not before.lower().startswith("clips in track")
+        if switched:
+            self.choose_from(target, self.CLIP_TARGET)
+            swatch = self.palette_swatch(win, index)    # Pro Tools may redraw the swatches
+        try:
+            for name in names:
+                pt.run("SelectAllClipsOnTrack", {"track_name": name})
+                self.press_el(swatch, mouse=bool(o.get("mouse")))
+        finally:
+            if switched and before:
+                try:
+                    self.choose_from(target, before)
+                except (E.NotFound, MacroError) as e:
+                    self.log(f"    couldn't set the Color Palette back to '{before}': {e}")
+            if opened:
+                btn = win.attr("AXCloseButton")
+                if btn is not None:
+                    btn.perform("AXPress")
 
     def track_colour(self, v, o):
         """track color: 13  /  "#3366ff"  /  none  /  default   (tracks: selected | all | names)"""

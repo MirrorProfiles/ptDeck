@@ -2288,3 +2288,32 @@ def test_deck_waits_for_pro_tools_after_a_press():
     c = D.DeckController.__new__(D.DeckController)
     c._after_press()
     assert c._poke and c._quiet_until > time.time() + 0.3
+
+
+# ---------- the language and rules guide (PTDECK_LANGUAGE_AND_RULES.md) keeps up with the code ----------
+
+def test_language_and_rules_are_complete():
+    """Every step, option, key setting, glyph, addition type, deck setting and command in the
+    code must appear in PTDECK_LANGUAGE_AND_RULES.md. If this fails, document the new feature there."""
+    import inspect
+    import re as _re
+    from ptdeck import look
+    from ptdeck import __main__ as M
+    from ptdeck.macros import ACTIONS, OPTIONS
+    guide = (ROOT / "PTDECK_LANGUAGE_AND_RULES.md").read_text()
+    missing = []
+    missing += [f"step '{a}'" for a in ACTIONS if f"`{a}" not in guide]
+    missing += [f"option '{o}'" for o in OPTIONS if f"`{o}:`" not in guide and f"`{o}`" not in guide]
+    missing += [f"key setting '{f}'" for f in D.BUTTON_FIELDS if f"| `{f}`" not in guide]
+    glyphs = guide.split("**Glyphs:**", 1)[1].split("\n\n", 1)[0]
+    missing += [f"glyph '{g}'" for g in look.GLYPHS if not _re.search(rf"(?<![\w-]){_re.escape(g)}(?![\w-])", glyphs)]
+    src = inspect.getsource(M.apply_additions)
+    kinds = set(_re.findall(r'if add\.get\("([a-z ]+)"\)', src)) | {"page"}
+    missing += [f"addition type '{k}'" for k in kinds if f"`{k}:`" not in guide]
+    deck_src = inspect.getsource(D)
+    for k in set(_re.findall(r'cfg\.get\("([a-z ]+)"', deck_src)) - {"pages"}:
+        if f"`{k}`" not in guide:
+            missing.append(f"deck setting '{k}'")
+    commands = set(_re.findall(r'"([a-z-]+)": cmd_', inspect.getsource(M)))
+    missing += [f"command '{c}'" for c in commands if not _re.search(rf"`{_re.escape(c)}[` ]", guide)]
+    assert not missing, "PTDECK_LANGUAGE_AND_RULES.md doesn't mention: " + ", ".join(sorted(missing))

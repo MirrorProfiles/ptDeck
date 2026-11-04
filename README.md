@@ -27,7 +27,8 @@ Macros are plain text lists of steps, written in a simple step format.
 | `assets/` | PT Deck's own fonts |
 | `tools/` | `make_icons.py`, which redraws the generated key pictures |
 | `tests/` | Automated tests (`.venv/bin/pip install -r requirements-dev.txt`, then `.venv/bin/python -m pytest tests`) |
-| `docs/` | Notes: how Pro Tools behaves, and what still needs testing |
+| `PTDECK_LANGUAGE_AND_RULES.md` | **How PT Deck works:** the macro language, key settings and the rules for adding macros and keys |
+| `docs/` | Notes from the first build (Pro Tools findings, things still to test) |
 | `my-deck/` | **Your deck:** `deck.yaml`, `macros/`, `rebuilt/`, `additions/`, `icons/`, `soundflow-scripts/` |
 | `*.command` | Double-click launchers |
 
@@ -117,79 +118,8 @@ the top of the file.
 
 ## 4. Step reference
 
-Every step starts with an action. The lines below it are settings.
-
-| Action | What it does | Example |
-|---|---|---|
-| `activate:` | Brings Pro Tools to the front | `activate: Pro Tools` |
-| `menu:` | Clicks a menu item | `menu: Track > New...` |
-| `press:` | Keyboard shortcut(s) | `press: cmd+shift+n` or `press: cmd+a, return` |
-| `type:` | Types text | `type: Lead Vox` |
-| `wait:` | Pauses | `wait: 500ms` / `wait: 2s` |
-| `wait for window:` | Waits for a window to open (add `gone: true` to wait for it to close) | `wait for window: New Tracks` |
-| `wait for:` | Waits for a button, checkbox, etc. to appear (or `gone: true`) | |
-| `click:` | Clicks a button, radio button, etc. by its name | `click: OK` |
-| `checkbox:` | Turns a checkbox `on`, `off` or `toggle` (it checks first, so it never flips the wrong way) | `checkbox: Mic PRE Settings` + `set: off` |
-| `popup:` | Picks from a pop-up menu | `popup: Format` + `choose: Stereo` |
-| `set text:` | Fills in a text box | `set text: Name` + `to: Lead Vox` |
-| `click at:` | **Click zone**: clicks a spot measured from a window's top-left | `click at: [120, 40]` + `window: main` |
-| `raise window:` | Brings a Pro Tools window to the front | |
-| `run macro:` | Runs another macro | `run macro: EAS Session Data` |
-| `note:` | A comment; does nothing | |
-
-### Steps that talk to Pro Tools directly
-
-These use Avid's Pro Tools Scripting SDK instead of clicking through windows,
-so a Pro Tools update won't break them, and they don't need Pro Tools in front.
-
-| Action | What it does | Example |
-|---|---|---|
-| `track color:` | Colours tracks. Use a colour like `"#3366ff"` (the closest Pro Tools colour is used), a palette number, `none` or `default` | `track color: "#d03030"` |
-| `select tracks:` | Selects tracks by name | `select tracks: Kick, Snare` |
-| `pro tools:` | Any SDK command, with its settings under `body:` | `pro tools: SaveSession` |
-
-| `save new version` | Saves, then Save As with the next number (Song.03 → Song.04) | |
-| `delete empty audio tracks:` | Deletes selected audio tracks with no clips (`tracks: all` for every track) | |
-| `bounce mix:` | Bounces with a name built from `{date}` `{session}` `{rate}` `{bits}`. Needs `source:` (the output name) | see `macros/bounce-mix-at-24-bit-and-rename.yaml` |
-
-### Other steps
-
-| Action | What it does | Example |
-|---|---|---|
-| `audiosuite:` | Opens an AudioSuite plug-in, wherever it is in the menu | `audiosuite: RX 11 De-click` |
-| `audiosuite preset:` | Picks a preset in the open AudioSuite window | `audiosuite preset: EAS Default` |
-| `audiosuite render` | Clicks Render and waits until it's finished | |
-| `close window:` | Closes a window | `close window: "Audio*Suite*"` |
-| `midi cc:` | Sends a MIDI CC (`value`, `channel`, `port`) | `midi cc: 80` + `value: 127` + `port: Maschine MK3` |
-| `open:` | Opens a file, folder or app | `open: /Volumes/T7/Refs` |
-| `quit app:` | Quits an app | `quit app: QuickTime Player` |
-
-### Track steps (inserts, sends, routing)
-
-These work on the **selected tracks** unless you add `track:` (one track) or `tracks:`.
-
-| Action | What it does | Example |
-|---|---|---|
-| `plugin window:` | Opens/closes a plug-in window, by plug-in name or slot (1–10 / A–J). `set: toggle` (default), `open` or `close` | `plugin window: ADPTR MetricAB` + `track: "-OUT MASTER"` |
-| `insert plugin:` | Adds a plug-in. `slot:` a number, a letter or `first free`. `category:` optional | `insert plugin: Cabinetron` + `slot: 10` |
-| `send:` | Sets a send (`slot:` 1–10, or `first free`, the default) to a bus | `send: //[PARA DRUMS]` + `slot: 1` |
-| `output:` / `input:` | Sets the track output / input | `output: (PRINT)` |
-| `remove inactive:` | Removes inactive `plugins`, `sends` or `both` | `remove inactive: both` + `tracks: all` |
-| `clear:` | Removes **all** `plugins`, `sends` or `both` | `clear: sends` |
-| `bypass plugin:` | Bypasses / un-bypasses a plug-in (slot or name) | `bypass plugin: 1` |
-| `toggle plugin active:` | Makes a plug-in active / inactive | `toggle plugin active: 10` |
-| `open session folder:` | Opens a folder inside the session folder | `open session folder: Bounced Files` |
-| `slider:` | Moves a plug-in control: `set: toggle`, `up`, `down` or a number | `slider: AB Switch` + `window: "Plug-in: ADPTR MetricAB"` |
-
-With several tracks selected, `send:` and `output:` apply to all of them
-(like holding Option+Shift in Pro Tools). Names are found anywhere in the
-menu, so `send: //[PARA DRUMS]` works without the full `Stereo > bus >` path.
-
-Add `app: com.apple.QuickTimePlayerX` (or another app's ID) to `menu:`, `click:`
-and similar steps to use them in an app other than Pro Tools.
-
-`track color:` colours the **selected** tracks unless you add `tracks:`, e.g.
-`tracks: all` or `tracks: Kick, Snare`.
+Every step, option and key setting, how to add a macro and a key, and the rules that
+keep macros reliable are in **[PTDECK_LANGUAGE_AND_RULES.md](PTDECK_LANGUAGE_AND_RULES.md)**.
 
 A whole "colour selected tracks red" button is just:
 
@@ -198,29 +128,6 @@ name: Colour Red
 steps:
 - track color: "#d03030"
 ```
-
-To see Pro Tools' colours with their numbers, run
-`.venv/bin/python -m ptdeck colours`. To check the connection, run
-`.venv/bin/python -m ptdeck test-pro-tools`. It shows the open session and the selected tracks.
-
-Settings you can add to most steps:
-
-- `window:` the window's title. `main` means the Edit/Mix window. Titles that
-  start with the text also match, so `Edit:` finds `Edit: My Song`.
-- `group:` the titled box the item sits in (like "Session Data"). Optional;
-  use it when the same name appears more than once.
-- `kind:` button, checkbox, radio button, popup, text field, slider…
-  Optional; it narrows the search.
-- `timeout:` how long to keep looking before giving up (default 5s; windows 15s).
-- `optional: true` skips the step instead of stopping if the item isn't there.
-  Handy for dialogs that only sometimes appear.
-- `pause:` waits after this step, e.g. `pause: 200ms`.
-- For `click at:` you can also use `double: true`, `button: right`, `modifiers: cmd+option`.
-- Names can use `*` as a wildcard: `window: Edit: *`.
-
-**Waiting is built in.** Each step keeps looking for its window or button for
-a few seconds before giving up. You rarely need fixed `wait:` steps, and the
-macros don't break when a dialog is slow to open.
 
 ## 5. When a Pro Tools update breaks something
 

@@ -204,7 +204,8 @@ def carpet_tile(col: int, size: int, base=None) -> Image.Image | None:
     """Key 'col' of the Room 237 carpet running along the top row (one continuous rug)."""
     key = (col, size)
     if key not in _carpet_cache:
-        src = Path(base or Path(__file__).resolve().parent.parent) / "icons" / "source" / "carpet-237.png"
+        from .paths import DATA
+        src = Path(base or DATA) / "icons" / "source" / "carpet-237.png"
         try:
             tile = Image.open(src).convert("RGB")
         except OSError:

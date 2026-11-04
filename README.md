@@ -19,6 +19,24 @@ Macros are plain text lists of steps, written in a simple step format.
 
 ---
 
+## What's in this folder
+
+| Folder | What it is |
+|---|---|
+| `ptdeck/` | PT Deck's code (Python) and the Manager page (`manager.html`) |
+| `assets/` | PT Deck's own fonts |
+| `tools/` | `make_icons.py`, which redraws the generated key pictures |
+| `tests/` | Automated tests (`.venv/bin/pip install -r requirements-dev.txt`, then `.venv/bin/python -m pytest tests`) |
+| `docs/` | Notes: how Pro Tools behaves, and what still needs testing |
+| `my-deck/` | **Your deck:** `deck.yaml`, `macros/`, `rebuilt/`, `additions/`, `icons/`, `soundflow-scripts/` |
+| `*.command` | Double-click launchers |
+
+Inside `my-deck/`, `settings.json`, `test-results.json`, `backups/` and `previews/` change every time
+you use the deck, so they're kept out of git. To keep your deck somewhere else, set `PTDECK_DATA`
+to that folder.
+
+---
+
 ## 1. One-time setup
 
 1. Install **Homebrew** if you don't have it: https://brew.sh
@@ -51,8 +69,8 @@ Terminal window and saved in `ptdeck.log`.
 3. The Import window notices the copy and asks for a name. Type it and press Return.
 4. Copy the next script. Repeat until you're done, then close the window.
 
-Each macro is saved in the `macros` folder, and the original script is kept in
-`soundflow-scripts`.
+Each macro is saved in `my-deck/macros`, and the original script is kept in
+`my-deck/soundflow-scripts`.
 
 If a script calls another SoundFlow command (`sf.soundflow.runCommand`), it
 becomes a `run macro:` step. The Import window lists these under
@@ -83,7 +101,7 @@ folders to your deck, and restarts PT Deck.
 
 It opens automatically at **http://localhost:8765** while PT Deck is running
 (bookmark it), or double-click **Open Manager.command**. Changes are saved to
-`deck.yaml` and the Stream Deck updates within a second. It only works on this Mac.
+`my-deck/deck.yaml` and the Stream Deck updates within a second. It only works on this Mac.
 
 ## 3. Setting up the buttons
 
@@ -93,9 +111,9 @@ the top of the file.
 
 - Pages work like folders. A button with `folder: Mix` opens the page called `Mix`.
 - Folder pages get a **Back** button on key 1 automatically.
-- Icons are PNG files in the `icons` folder. Any size works; transparent backgrounds look best.
+- Icons are PNG files in `my-deck/icons`. Any size works; transparent backgrounds look best.
 - **Check Macros.command** checks everything for mistakes and saves pictures
-  of each page in the `previews` folder, so you can see the layout without the deck.
+  of each page in `my-deck/previews`, so you can see the layout without the deck.
 
 ## 4. Step reference
 

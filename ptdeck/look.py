@@ -19,7 +19,9 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
 
-FONTS = Path(__file__).resolve().parent.parent / "icons" / "fonts"
+from .paths import ASSETS
+
+FONTS = ASSETS / "fonts"
 SS = 4                        # draw 4x bigger, then shrink: smooth edges
 COMMAND_BG = "#2a2f36"
 FOLDER_BG = "#20242a"

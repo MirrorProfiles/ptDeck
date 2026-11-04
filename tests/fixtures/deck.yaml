@@ -32,26 +32,10 @@ additions applied:
   home-folder-icons: 1
   icon-style: 1
   Mix Bus: 2
-  home-title: 1
-  recording-keys: 1
-  solo-modes-icon: 1
-  mixing-1-rename: 1
-  mixing-2-keys: 1
-  mixing-3-home-icon: 1
-  metric-ab-more-keys: 1
-  mixing-4-selection-keys: 1
 icon style: designed
 
 pages:
   Home:
-    - {key: 1, icon: home-title-1.png}
-    - {key: 2, icon: home-title-2.png}
-    - {key: 3, icon: home-title-3.png}
-    - {key: 4, icon: home-title-4.png}
-    - {key: 5, icon: home-title-5.png}
-    - {key: 6, icon: home-title-6.png}
-    - {key: 7, icon: home-title-7.png}
-    - {key: 8, icon: home-title-8.png}
     - {key: 9, icon: finder.png, macro: Finder}
     - {key: 12, icon: airpods.png, folder: AirPods}
     - {key: 14, label: 'Low
@@ -75,9 +59,9 @@ pages:
     - {key: 24, label: Default I/O, macro: Default I/O, color: '#606060'}
     - {key: 25, icon: folder-mix-prep.png, folder: Mix Prep, outline: none}
     - {key: 26, icon: folder-mix-sends.png, folder: Mix Sends, outline: none}
-    - {key: 27, icon: folder-mixing.png, folder: Mixing, outline: none}
+    - {key: 27, icon: folder-mix-bus.png, folder: Mix Bus, outline: none}
     - {key: 28, icon: vu-meter.png, macro: open-vu-meter}
-    - {key: 29, icon: folder-solo-modes.png, folder: SOLO MODES, outline: none}
+    - {key: 29, label: SOLO MODES, folder: SOLO MODES}
     - {key: 31, label: Print Stems, icon: iconapp-fmusic-26.png, macro: Open fMusic, color: '#202020'}
     - {key: 32, icon: folder-bounce-mix.png, folder: Bounce Mix, outline: none}
 
@@ -159,6 +143,12 @@ pages:
     - {key: 13, label: 'FX Loop
 
     Off', macro: ampete-fx-loop-off, color: '#f7a35c', text color: black}
+    - {key: 17, label: 'Amp
+
+    1', macro: ampete-amp-1-on, color: '#e8a823', text color: black}
+    - {key: 18, label: 'Amp
+
+    2', macro: ampete-amp-2-on, color: '#e8a823', text color: black}
     - {key: 19, label: 'Amp
 
     3', macro: ampete-amp-43-on, color: '#e8a823', text color: black}
@@ -177,14 +167,9 @@ pages:
     - {key: 24, label: 'Cab 4
 
     REACT:IR', macro: ampete-cab-4-on, color: '#1f4f8a'}
-    - {key: 25, label: 'Amp
-
-    1', macro: ampete-amp-1-on, color: '#e8a823', text color: black}
-    - {key: 26, label: 'Amp
-
-    2', macro: ampete-amp-2-on, color: '#e8a823', text color: black}
 
   Mix Sends:
+    - {key: 6, label: Bypass All Sends on Selected Track, macro: Bypass All Sends on Selected Track, color: '#b5470a'}
     - {key: 8, label: CLEAR ALL SENDS, macro: Clear All Sends, color: '#ff2200'}
     - {key: 9, label: '//
 
@@ -193,16 +178,12 @@ pages:
 
     [FLANGER]', macro: Send to FLANGER, color: '#b4217c'}
     - {key: 11, label: '//[H3000]', macro: Send to H3000, color: '#b4217c'}
-    - {key: 16, label: Bypass All Sends on Selected Track, macro: Bypass All Sends on Selected Track, color: '#b5470a'}
     - {key: 17, label: '//
 
     [1/8 DELAY]', macro: Send to 1/8 DELAY, color: '#16bc7d'}
     - {key: 18, label: '//
 
     [SLAP DELAY]', macro: Send to SLAP DELAY, color: '#16bc7d'}
-    - {key: 24, label: 'Selection
-
-    Up', macro: Edit Selection Up, color: '#3a3f46', glyph: arrow-up}
     - {key: 25, label: '//[PLATE]', macro: Send to PLATE, color: '#20b8fc'}
     - {key: 26, label: '//[ROOM]', macro: Send to ROOM, color: '#20b8fc'}
     - {key: 27, label: '//
@@ -220,19 +201,13 @@ pages:
     - {key: 31, label: '//
 
     [SHIMMER]', macro: Send to SHIMMER, color: '#20b8fc'}
-    - {key: 32, label: 'Selection
 
-    Down', macro: Edit Selection Down, color: '#3a3f46', glyph: arrow-down}
-
-  Mixing:
+  Mix Bus:
     - {key: 2, macro: Insert 1 Toggle, live: 1, live track: selected}
     - {key: 3, macro: Insert 2 Toggle, live: 2, live track: selected}
     - {key: 4, macro: Insert 3 Toggle, live: 3, live track: selected}
     - {key: 5, macro: Insert 4 Toggle, live: 4, live track: selected}
     - {key: 6, macro: Insert 5 Toggle, live: 5, live track: selected}
-    - {key: 8, label: 'Active /
-
-    Inactive', macro: Toggle Open Plugin Active, color: '#3a3f46', glyph: power}
     - {key: 9, live name: selected}
     - {key: 10, macro: Insert 6 Toggle, live: 6, live track: selected}
     - {key: 11, macro: Insert 7 Toggle, live: 7, live track: selected}
@@ -248,21 +223,12 @@ pages:
     - {key: 20, macro: Open Mix Bus Plugin 3, live: 3, live track: (PRINT)}
     - {key: 21, macro: Open Mix Bus Plugin 4, live: 4, live track: (PRINT)}
     - {key: 22, macro: Open Mix Bus Plugin 5, live: 5, live track: (PRINT)}
-    - {key: 23, label: 'Selection
-
-    Up', macro: Edit Selection Up, color: '#3a3f46', glyph: arrow-up}
     - {key: 24, label: Open Drum Bus EQ, macro: Open Drum Bus EQ}
     - {key: 26, macro: Open Mix Bus Plugin 6, live: 6, live track: (PRINT)}
     - {key: 27, macro: Open Mix Bus Plugin 7, live: 7, live track: (PRINT)}
     - {key: 28, macro: Open Mix Bus Plugin 8, live: 8, live track: (PRINT)}
     - {key: 29, macro: Open Mix Bus Plugin 9, live: 9, live track: (PRINT)}
     - {key: 30, macro: Open Mix Bus Plugin 10, live: 10, live track: (PRINT)}
-    - {key: 31, label: 'Selection
-
-    Down', macro: Edit Selection Down, color: '#3a3f46', glyph: arrow-down}
-    - {key: 32, label: 'REMOVE
-
-    Plug-in', macro: Remove Open Plugin, color: '#6d0b0a', glyph: trash}
 
   Metric A/B:
     - {key: 2, label: Open Metric A/B, macro: open-metric-a-b}
@@ -276,15 +242,10 @@ pages:
     - {key: 14, macro: Slot B2, metric: B2}
     - {key: 15, macro: Slot C2, metric: C2}
     - {key: 16, macro: Slot D2, metric: D2}
-    - {key: 17, macro: Metric Sides, metric toggle: sides}
     - {key: 21, macro: Slot A3, metric: A3}
     - {key: 22, macro: Slot B3, metric: B3}
     - {key: 23, macro: Slot C3, metric: C3}
     - {key: 24, macro: Slot D3, metric: D3}
-    - {key: 25, macro: Metric Loudness Match, metric toggle: match}
-    - {key: 26, label: 'MATCH
-
-    ALL', macro: Metric Match All References, color: '#1d2a38', text color: '#e0a274', glyph: speaker}
     - {key: 29, macro: Slot A4, metric: A4}
     - {key: 30, macro: Slot B4, metric: B4}
     - {key: 31, macro: Slot C4, metric: C4}
@@ -296,12 +257,13 @@ pages:
     - {key: 10, label: SET TO RME INPUT R, macro: set-input-to-rme-r, color: '#004911'}
     - {key: 13, icon: tuner.png, macro: add-tuner-to-first-insert-slot}
     - {key: 14, icon: images-3.png, macro: NAM}
-    - {key: 15, icon: cabinetron.png, macro: LIBRA}
+    - {key: 15, label: Cabinetron, icon: screenshot-2026-11-01-at-11-43-09.png, macro: LIBRA}
     - {key: 16, icon: eas-cabs.png, macro: Open EAS Cabs}
     - {key: 17, icon: create-click-track.png, macro: add-new-click-track}
     - {key: 18, icon: mono.png, macro: Mono}
     - {key: 19, icon: stereo.png, macro: Stereo}
-    - {key: 21, label: Duplicate Plug-ins to New Track, macro: Duplicate Plug-ins to New Track, glyph: copy}
+    - {key: 21, icon: copy-track-data.png, macro: Copy Track Data}
+    - {key: 22, icon: paste-inserts.png, macro: Paste Inserts}
     - {key: 24, icon: superior-drummer.png, macro: Superior Drummer}
     - {key: 25, icon: pro-q3.png, macro: Assign Pro-Q 4}
     - {key: 26, icon: mic-pre.png, macro: Assign UADx 1073}
@@ -315,30 +277,30 @@ pages:
     - {key: 28, icon: airpods.png, macro: airpod-max}
 
   Commit Tracks:
-    - {key: 17, label: Edit Sel\nOffline\nHide, macro: Commit - Edit Sel - Offline - Hide, color: '#b4217c'}
-    - {key: 18, label: Edit Sel\nOffline\nDELETE, macro: Commit - Edit Sel - Offline - Delete, color: '#7a1030'}
-    - {key: 19, label: 'Edit Sel
+    - {key: 2, label: Edit Sel\nOffline\nHide, macro: Commit - Edit Sel - Offline - Hide, color: '#b4217c'}
+    - {key: 3, label: Edit Sel\nOffline\nDELETE, macro: Commit - Edit Sel - Offline - Delete, color: '#7a1030'}
+    - {key: 4, label: Edit Sel\nReal-time\nHide, macro: Commit - Edit Sel - Realtime - Hide, color: '#b4217c'}
+    - {key: 5, label: Edit Sel\nReal-time\nDELETE, macro: Commit - Edit Sel - Realtime - Delete, color: '#7a1030'}
+    - {key: 6, label: 'Edit Sel
 
     Offline
 
     Keep Source', macro: Commit - Edit Sel - Offline - Do Nothing, color: '#5a3a6a'}
-    - {key: 22, label: Edit Sel\nReal-time\nHide, macro: Commit - Edit Sel - Realtime - Hide, color: '#b4217c'}
-    - {key: 23, label: Edit Sel\nReal-time\nDELETE, macro: Commit - Edit Sel - Realtime - Delete, color: '#7a1030'}
-    - {key: 24, label: 'Edit Sel
+    - {key: 7, label: 'Edit Sel
 
     Real-time
 
     Keep Source', macro: Commit - Edit Sel - Realtime - Do Nothing, color: '#5a3a6a'}
-    - {key: 25, label: Entire Track\nOffline\nHide, macro: Commit - Entire Track - Offline - Hide, color: '#b4217c'}
-    - {key: 26, label: Entire Track\nOffline\nDELETE, macro: Commit - Entire Track - Offline - Delete, color: '#7a1030'}
-    - {key: 27, label: 'Entire Track
+    - {key: 10, label: Entire Track\nOffline\nHide, macro: Commit - Entire Track - Offline - Hide, color: '#b4217c'}
+    - {key: 11, label: Entire Track\nOffline\nDELETE, macro: Commit - Entire Track - Offline - Delete, color: '#7a1030'}
+    - {key: 12, label: Entire Track\nReal-time\nHide, macro: Commit - Entire Track - Realtime - Hide, color: '#b4217c'}
+    - {key: 13, label: Entire Track\nReal-time\nDELETE, macro: Commit - Entire Track - Realtime - Delete, color: '#7a1030'}
+    - {key: 14, label: 'Entire Track
 
     Offline
 
     Keep Source', macro: Commit - Entire Track - Offline - Do Nothing, color: '#5a3a6a'}
-    - {key: 30, label: Entire Track\nReal-time\nHide, macro: Commit - Entire Track - Realtime - Hide, color: '#b4217c'}
-    - {key: 31, label: Entire Track\nReal-time\nDELETE, macro: Commit - Entire Track - Realtime - Delete, color: '#7a1030'}
-    - {key: 32, label: 'Entire Track
+    - {key: 15, label: 'Entire Track
 
     Real-time
 

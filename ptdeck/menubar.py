@@ -13,7 +13,7 @@ import sys
 import threading
 from pathlib import Path
 
-BASE = Path(__file__).resolve().parent.parent
+from .paths import APP as BASE, DATA     # BASE: the PT Deck folder; DATA: your deck
 APP = BASE / "PT Deck.app"
 AGENT = Path.home() / "Library" / "LaunchAgents" / "com.easstudios.ptdeck.plist"
 BUNDLE_ID = "com.easstudios.ptdeck"
@@ -194,7 +194,7 @@ def run():
         ask_for("Screen Recording")          # adds python3 to Screen Recording's list
     M.log(f"PT Deck runs as {python_path()} (shown as 'python3' in System Settings)")
     runner = Runner(system, M.library(), log=M.log)
-    controller = DeckController(BASE, runner, log=M.log)
+    controller = DeckController(DATA, runner, log=M.log)
     if M.start_manager(system, controller):
         M.log(f"Manager: http://localhost:{PORT}")
     threading.Thread(target=controller.run_forever, daemon=True).start()
@@ -303,7 +303,7 @@ def run():
                 return
             path = Path(str(panel.URLs()[0].path()))
             try:
-                mgr = Manager(BASE, log=M.log)
+                mgr = Manager(DATA, log=M.log)
                 mgr.restart_soon = lambda: None
                 res = mgr.install_update(base64.b64encode(path.read_bytes()).decode())
                 make_app(BASE, log=M.log)

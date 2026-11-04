@@ -15,7 +15,7 @@ from pathlib import Path
 from . import elements as E
 from . import settings
 
-BASE = Path(__file__).resolve().parent.parent
+from .paths import DATA as BASE
 WINDOW = "Plug-in: ADPTR MetricAB*"
 LETTERS = "ABCD"
 

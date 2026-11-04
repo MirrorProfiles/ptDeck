@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 set -e
-mkdir -p macros soundflow-scripts icons
+mkdir -p my-deck/macros my-deck/soundflow-scripts my-deck/icons
 if ! command -v brew >/dev/null 2>&1; then
   echo "Homebrew is needed first. Install it from https://brew.sh then run this again."
   read -p "Press Return to close."; exit 1

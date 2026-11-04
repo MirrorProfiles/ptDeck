@@ -84,8 +84,10 @@ def save_config(path: Path, cfg: dict):
 
 
 class Manager:
-    def __init__(self, base: Path, runner_factory=None, log=print):
-        self.base = Path(base)
+    def __init__(self, base: Path, runner_factory=None, log=print, app: Path | None = None):
+        from .paths import APP
+        self.base = Path(base)                     # your deck folder
+        self.app = Path(app) if app else APP       # the PT Deck folder (code, .venv, log)
         self.cfg_path = self.base / "deck.yaml"
         self.lib = Library(self.base / "macros")
         self.runner_factory = runner_factory
@@ -292,7 +294,7 @@ class Manager:
                 "macros": macros, "icons": icons, "runs": self.runs, "log": self.log_tail()}
 
     def log_tail(self, n=60):
-        f = self.base / "ptdeck.log"
+        f = self.app / "ptdeck.log"
         try:
             return f.read_text(encoding="utf-8", errors="replace").splitlines()[-n:]
         except OSError:
@@ -459,7 +461,23 @@ class Manager:
 
     # Files from a download that belong to PT Deck itself. Everything else in your folder
     # (macros, soundflow-scripts, deck.yaml, test results, the log, .venv) is never touched.
+    # Downloads in the old flat layout and the my-deck layout both work.
     INSTALL_DIRS = ("ptdeck/", "rebuilt/", "additions/", "icons/")
+    APP_DIRS = ("ptdeck/", "assets/", "tools/")
+    DECK_DIRS = ("rebuilt/", "additions/", "icons/")
+
+    def _install_dest(self, rel):
+        """Where a file from a download goes, or None to skip it."""
+        if rel.startswith("my-deck/"):
+            rel = rel[len("my-deck/"):]
+            return self.base / rel if rel.startswith(self.DECK_DIRS) else None
+        if rel.startswith("icons/fonts/"):                        # old layout: fonts are the app's
+            return self.app / "assets" / "fonts" / rel[len("icons/fonts/"):]
+        if rel.startswith(self.APP_DIRS) or rel in self.INSTALL_FILES:
+            return self.app / rel
+        if rel.startswith(self.DECK_DIRS):
+            return self.base / rel
+        return None
     INSTALL_FILES = ("README.md", "requirements.txt", "Install.command", "Start PT Deck.command",
                      "Open Manager.command", "Import From SoundFlow.command", "Pick Element.command",
                      "Check Macros.command", "Update Macros.command")
@@ -478,24 +496,24 @@ class Manager:
         if not any(n.startswith(prefix + "ptdeck/__main__.py") for n in names):
             raise ValueError("That zip doesn't contain PT Deck")
         installed = 0
-        old_reqs = (self.base / "requirements.txt").read_bytes() if (self.base / "requirements.txt").exists() else b""
+        old_reqs = (self.app / "requirements.txt").read_bytes() if (self.app / "requirements.txt").exists() else b""
         for n in names:
             rel = n[len(prefix):]
             if not rel or rel.endswith("/") or ".." in Path(rel).parts or rel.startswith("/"):
                 continue
-            if not (rel.startswith(self.INSTALL_DIRS) or rel in self.INSTALL_FILES) or "__pycache__" in rel:
+            dest = self._install_dest(rel)
+            if dest is None or "__pycache__" in rel:
                 continue
-            dest = self.base / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(zf.read(n))
             if rel.endswith(".command"):
                 dest.chmod(0o755)
             installed += 1
-        reqs = self.base / "requirements.txt"
+        reqs = self.app / "requirements.txt"
         if reqs.exists() and reqs.read_bytes() != old_reqs:
-            pip = self.base / ".venv" / "bin" / "pip"
+            pip = self.app / ".venv" / "bin" / "pip"
             if pip.exists():
-                subprocess.run([str(pip), "install", "-q", "-r", str(self.base / "requirements.txt")])
+                subprocess.run([str(pip), "install", "-q", "-r", str(reqs)])
         added = []
         try:
             from .__main__ import apply_additions, remove_stale_rebuilt_copies
@@ -506,9 +524,9 @@ class Manager:
         except Exception as e:  # noqa: BLE001
             self.log(f"✗ adding new pages: {e}")
         try:                                  # keep PT Deck.app's launcher up to date
-            if (self.base / "PT Deck.app").exists():
+            if (self.app / "PT Deck.app").exists():
                 from .menubar import make_app
-                make_app(self.base, log=self.log)
+                make_app(self.app, log=self.log)
         except Exception as e:  # noqa: BLE001
             self.log(f"(couldn't refresh PT Deck.app: {e})")
         self.log(f"Installed update ({installed} files). Restarting...")

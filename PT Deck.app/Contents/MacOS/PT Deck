@@ -1,9 +1,0 @@
-#!/bin/bash
-# Starts PT Deck from the folder this app sits in.
-DIR="$(cd "$(dirname "$0")/../../.." && pwd)"
-cd "$DIR" || exit 1
-if [ ! -x .venv/bin/python ]; then
-  osascript -e 'display alert "PT Deck isn'"'"'t installed yet" message "Double-click Install.command in the PT Deck folder first."'
-  exit 1
-fi
-exec "$DIR/.venv/bin/python" -m ptdeck menubar >> "$DIR/ptdeck-app.log" 2>&1

@@ -14,8 +14,10 @@ import yaml
 from . import elements as E
 from .macros import Library, Runner, slug, validate
 
-BASE = Path(__file__).resolve().parent.parent
-LOG_FILE = BASE / "ptdeck.log"
+from .paths import APP, DATA
+
+BASE = DATA                      # your deck: deck.yaml, macros, icons...
+LOG_FILE = APP / "ptdeck.log"
 
 
 def log(msg):
@@ -663,7 +665,7 @@ def cmd_menubar(a):
 def cmd_make_app(a):
     """Create PT Deck.app (a menu bar app) in the PT Deck folder."""
     from .menubar import make_app
-    app = make_app(BASE, log=print)
+    app = make_app(APP, log=print)
     print(f"Made {app}")
     print("Double-click it to start PT Deck from the menu bar. You can drag it to your Dock or "
           "Applications too (keep the PT Deck folder where it is).")

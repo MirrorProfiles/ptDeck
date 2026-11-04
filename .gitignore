@@ -1,7 +1,17 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
-previews/
-ptdeck.log
+.pytest_cache/
+
+# Made by Install.command / at run time
+PT Deck.app/
+.menubar/
 *.log
 .DS_Store
+
+# Your deck's per-session files (change on every use)
+my-deck/settings.json
+my-deck/test-results.json
+my-deck/backups/
+my-deck/previews/

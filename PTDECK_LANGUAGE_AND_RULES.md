@@ -128,6 +128,7 @@ steps:
 | `close window:` | Closes a window with its close button | `close window: "Audio*Suite*"` |
 | `if window:` | Waits briefly (default 3 s) for a window; runs `then:` steps if it appears, else `else:` steps. `or:` lists other windows that mean "no" straight away | see below |
 | `if menu:` | Runs `then:` steps if a menu-bar item is ticked, else `else:` steps. `ticked: false` flips it; `ticked: any` asks whether the item exists at all. Uses the tick the deck believes first (see `lit menu`) | see below |
+| `if remembered:` | Runs `then:` steps if every value PT Deck remembers matches, else `else:` steps. Values come from `midi cc:` (`midi ch1 cc88`) and `set buffer size:` (`buffer size`); one never recorded counts as no match | `if remembered: {midi ch1 cc88: 127}` |
 | `accept dialog:` | If a small dialog appears within `timeout` (default 2 s), accepts it. Nothing happens otherwise | `accept dialog:` |
 | `run macro:` | Runs another macro (up to 10 deep) | `run macro: EAS Session Data` |
 | `note:` | A comment; does nothing | `note: needs the Edit window` |
@@ -221,7 +222,7 @@ if it can't tell, real time.
 |---|---|---|
 | `open:` | Opens a file, folder or app | `open: /Volumes/T7/Refs` |
 | `quit app:` | Quits an app | `quit app: QuickTime Player` |
-| `midi cc:` | Sends a MIDI CC: `value:` (default 127), `channel:` (default 1), `port:` | `midi cc: 80` + `value: 127` + `port: Maschine MK3` |
+| `midi cc:` | Sends a MIDI CC: `value:` (default 127), `channel:` (default 1), `port:`. Remembers what it sent as `midi ch<channel> cc<number>` (e.g. `midi ch1 cc80`) for `lit when` keys and `if remembered:` | `midi cc: 80` + `value: 127` + `port: Maschine MK3` |
 
 ## 5. Options
 
@@ -324,7 +325,7 @@ page settings:
 | `palette color` | A Pro Tools track-colour number (as `track color:` takes and the `colours` chart shows): the key shows that exact colour once PT Deck has read Pro Tools' palette; `color` is shown until then |
 | `gradient` | Background blended left to right through a list of colours, e.g. `['#1b3fae', '#e0242a']` (classic look) |
 | `lit menu` | A menu-bar path (`View > Clip > Name`): the key shows its lit look while that item is ticked. A list of paths lights only when every one is ticked (e.g. `['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*']`; in the Manager, join them with ` + `). The deck follows ticks its own keys change straight away, and re-reads Pro Tools every few seconds |
-| `lit when` | Values PT Deck remembers that must all match for the key to light, e.g. `{buffer size: 128}`. `buffer size` is recorded by `set buffer size:` steps (Pro Tools can't report it otherwise), so a change made in Pro Tools itself shows after the next buffer key press. Can be combined with `lit menu` |
+| `lit when` | Values PT Deck remembers that must all match for the key to light, e.g. `{buffer size: 128}`. `buffer size` is recorded by `set buffer size:` steps (Pro Tools can't report it otherwise), so a change made in Pro Tools itself shows after the next buffer key press. `midi ch1 cc80` etc. are recorded by `midi cc:` steps: a key lights for the last value the deck sent, since MIDI devices don't report back. Can be combined with `lit menu` |
 | `lit color` | Background while lit |
 | `lit label` | Label while lit (default: the normal label) |
 | `lit text color` | Label colour while lit |

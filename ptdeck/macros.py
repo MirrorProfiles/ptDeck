@@ -19,7 +19,7 @@ ACTIONS = [
     "pro tools", "track color", "track colour", "select tracks",
     "midi cc", "open", "quit app", "close window", "slider", "metric slot", "metric ab", "bypass open plugin", "new track preset", "toggle open plugin active", "remove open plugin", "plugin preset", "metric button",
     "plugin window", "insert plugin", "send", "output", "input", "remove inactive",
-    "open session folder", "if window", "if menu", "accept dialog", "track menu", "paste", "import io settings", "set buffer size", "bounce dialog", "convert pro-q 3 to 4", "compact inserts", "toggle tce trim", "clear", "bypass plugin", "toggle plugin active",
+    "open session folder", "if window", "if menu", "if remembered", "accept dialog", "track menu", "paste", "import io settings", "set buffer size", "bounce dialog", "convert pro-q 3 to 4", "compact inserts", "toggle tce trim", "clear", "bypass plugin", "toggle plugin active",
     "audiosuite", "audiosuite preset", "audiosuite render",
     "save new version", "delete empty audio tracks", "bounce mix",
 ]
@@ -159,7 +159,7 @@ def validate(macro: dict, library: Library | None = None) -> list[str]:
             bad = [k for k in opts if k not in OPTIONS and k not in ACTIONS]
             if bad:
                 problems.append(f"step {i}: unknown option '{bad[0]}'")
-            if action in ("if window", "if menu"):
+            if action in ("if window", "if menu", "if remembered"):
                 for branch in ("then", "else"):
                     problems += [f"step {i} ({branch}) {p}" for p in
                                  validate({"steps": opts.get(branch) or []}, library)]
@@ -214,6 +214,8 @@ class Runner:
                     self._if_window(value, opts, macro_name, depth, label)
                 elif action == "if menu":
                     self._if_menu(value, opts, macro_name, depth, label)
+                elif action == "if remembered":
+                    self._if_remembered(value, opts, macro_name, depth, label)
                 else:
                     self.do(action, value, opts, depth)
             except (E.NotFound, MacroError, ValueError, PTSLError, RuntimeError) as e:
@@ -254,6 +256,17 @@ class Runner:
         branch = o.get("then") if found else o.get("else")
         self.log(f"    window '{v}' {'is' if found else 'is not'} open")
         self._run_steps(branch or [], macro_name, depth, prefix=f"{label}.")
+
+    def _if_remembered(self, v, o, macro_name, depth, label):
+        """if remembered: {midi ch1 cc88: 127}   then: [steps]   else: [steps]
+        Runs 'then' when every value PT Deck remembers matches (e.g. the last MIDI CC it sent)."""
+        from . import settings
+        base = self.lib.folder.parent
+        if not isinstance(v, dict) or not v:
+            raise MacroError("if remembered needs values to compare, e.g. {midi ch1 cc88: 127}")
+        yes = all(str(settings.get(base, str(k))).lower() == str(w).lower() for k, w in v.items())
+        self.log(f"    remembered {v}: {'yes' if yes else 'no'}")
+        self._run_steps((o.get("then") if yes else o.get("else")) or [], macro_name, depth, prefix=f"{label}.")
 
     def _if_menu(self, v, o, macro_name, depth, label):
         """if menu: Options > Solo Mode > AFL*   (ticked: true)   then: [steps]   else: [steps]
@@ -431,7 +444,10 @@ class Runner:
         elif action == "pro tools":
             self.sys.ptsl().run(v, o.get("body") or {})
         elif action == "midi cc":
-            self.sys.midi_cc(str(o.get("port", "")), int(o.get("channel", 1)), int(v), int(o.get("value", 127)))
+            ch, value = int(o.get("channel", 1)), int(o.get("value", 127))
+            self.sys.midi_cc(str(o.get("port", "")), ch, int(v), value)
+            from . import settings              # remembered for 'lit when' keys and 'if remembered'
+            settings.put(self.lib.folder.parent, f"midi ch{ch} cc{int(v)}", value)
         elif action == "open":
             self.sys.open(str(v))
         elif action == "quit app":

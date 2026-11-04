@@ -287,3 +287,27 @@ def test_lit_when_follows_a_remembered_value(tmp_path):
     assert c.shown(0, c.slots[0])["color"] == "#2e8b57"
     settings.put(tmp_path, "buffer size", 1024)
     assert c.shown(0, c.slots[0])["color"] == "#606060"
+
+
+def test_midi_cc_is_remembered_and_if_remembered_branches(tmp_path):
+    from ptdeck import settings
+    sent = []
+
+    class Sys(FakeSys):
+        def midi_cc(self, port, channel, cc, value):
+            sent.append((port, channel, cc, value))
+    (tmp_path / "macros").mkdir()
+    lib = Library(tmp_path / "macros")
+    (tmp_path / "macros" / "on.yaml").write_text("name: On\nsteps:\n- midi cc: 88\n  value: 127\n  port: P\n")
+    (tmp_path / "macros" / "off.yaml").write_text("name: Off\nsteps:\n- midi cc: 88\n  value: 0\n  port: P\n")
+    (tmp_path / "macros" / "toggle.yaml").write_text(
+        "name: Toggle\nsteps:\n- if remembered: {midi ch1 cc88: 127}\n  then:\n  - run macro: Off\n"
+        "  else:\n  - run macro: On\n")
+    assert validate(lib.get("Toggle"), lib) == []
+    r = Runner(Sys(make_app([El("AXWindow", "Edit: x")])), lib, log=lambda m: None)
+    r.run("Toggle")                                       # nothing remembered yet: turns it on
+    assert sent[-1] == ("P", 1, 88, 127) and settings.get(tmp_path, "midi ch1 cc88") == 127
+    r.run("Toggle")
+    assert sent[-1] == ("P", 1, 88, 0) and settings.get(tmp_path, "midi ch1 cc88") == 0
+    r.run("Toggle")
+    assert sent[-1][3] == 127

@@ -1,0 +1,9 @@
+# Turns Ampete's FX loop on if it's off, and off if it's on (MIDI CC 88).
+# Ampete doesn't report its state, so this goes by the last value PT Deck sent.
+name: Ampete FX Loop Toggle
+steps:
+- if remembered: {midi ch1 cc88: 127}
+  then:
+  - run macro: Ampete FX Loop Off
+  else:
+  - run macro: FX Loop On

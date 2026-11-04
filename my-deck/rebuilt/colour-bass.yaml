@@ -1,5 +1,5 @@
-# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #240d46).
-# Change the colour code, or use a palette number (see 'ptdeck colours').
+# Rebuilt for PT Deck: colours the selected tracks (Pro Tools palette colour 47).
+# To change it, use another palette number ('ptdeck colours' shows them).
 name: Colour Bass
 steps:
-- track color: "#240d46"
+- track color: 47          # palette position (was "#240d46"; same colour as before)

@@ -1,5 +1,5 @@
-# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #00495a).
-# Change the colour code, or use a palette number (see 'ptdeck colours').
+# Rebuilt for PT Deck: colours the selected tracks (Pro Tools palette colour 66).
+# To change it, use another palette number ('ptdeck colours' shows them).
 name: Colour Aux
 steps:
-- track color: "#00495a"
+- track color: 66          # palette position (was "#00495a"; same colour as before)

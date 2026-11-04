@@ -1,5 +1,5 @@
-# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #4e0a00).
-# Change the colour code, or use a palette number (see 'ptdeck colours').
+# Rebuilt for PT Deck: colours the selected tracks (Pro Tools palette colour 54).
+# To change it, use another palette number ('ptdeck colours' shows them).
 name: Colour Drums
 steps:
-- track color: "#4e0a00"
+- track color: 54          # palette position (was "#4e0a00"; same colour as before)

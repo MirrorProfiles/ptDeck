@@ -2317,3 +2317,16 @@ def test_language_and_rules_are_complete():
     commands = set(_re.findall(r'"([a-z-]+)": cmd_', inspect.getsource(M)))
     missing += [f"command '{c}'" for c in commands if not _re.search(rf"`{_re.escape(c)}[` ]", guide)]
     assert not missing, "PTDECK_LANGUAGE_AND_RULES.md doesn't mention: " + ", ".join(sorted(missing))
+
+
+def test_track_colour_numbers_start_at_one():
+    """Checked in Pro Tools on both the PT Deck and CHP Macs (Nov 2026): SetTrackColor N applies the
+    Nth colour of GetColorPalette's list. Counting from 0 put every hex colour one swatch early."""
+    assert P.COLOUR_BASE == 1
+
+
+def test_colour_keys_use_palette_numbers():
+    """The Colour keys name palette positions, so they pick the same swatch on any Mac."""
+    for f in sorted((DECK / "rebuilt").glob("colour-*.yaml")):
+        step = Library(DECK / "rebuilt").load(f)["steps"][0]
+        assert isinstance(step["track color"], int), f.name

@@ -152,7 +152,7 @@ steps:
 
 | Step | What it does | Example |
 |---|---|---|
-| `track color:` / `track colour:` | Colours tracks: `"#hex"` (nearest Pro Tools colour), a palette number, `none` or `default` | `track color: "#d03030"` |
+| `track color:` / `track colour:` | Colours tracks by palette position: a number (1 = the first swatch; `ptdeck colours` shows them), `none` or `default`. A `"#hex"` also works (nearest colour in this Mac's palette) | `track color: 54` |
 | `select tracks:` | Selects tracks by name (`all`, or a comma list) | `select tracks: Kick, Snare` |
 | `pro tools:` | Any SDK command by name, settings under `body:` | `pro tools: SaveSession` |
 | `save new version` | Saves, then Save As with the next number (Song.03 → Song.04) | `save new version:` |
@@ -389,6 +389,8 @@ buttons:
 - `name:` should match the key's purpose; the file name is that name in lowercase with dashes.
 
 **Choosing steps**
+- Colour tracks by palette number (`track color: 54`), not hex: a number picks the same swatch
+  position on every Mac, even where palettes are customised, so colour keys stay shareable.
 - Prefer an SDK or dedicated step over clicking through windows, then named elements,
   then shortcuts. `click at:` is a last resort; it breaks when windows move.
 - Don't use fixed `wait:` steps. Every step waits for its window or element; use
@@ -456,6 +458,9 @@ Learned the hard way; each has a workaround in the code.
   key fonts are looked up through macOS (CoreText) first, then by scanning the font folders.
 - Sending a character with Option held can type a different character (Option + minus types "–") instead
   of triggering the shortcut; PT Deck's `press:` sends physical key codes, which is right.
+- Track colour numbers start at 1: `SetTrackColor` N applies the Nth colour of the palette list
+  (`COLOUR_BASE` in `ptdeck/ptsl.py`). Until Nov 2026 PT Deck counted from 0, so its hex colour keys
+  landed one swatch early; the Colour keys now name the numbers they were actually applying.
 - The PTSL connection can go stale after opening a session or restarting Pro Tools;
   read-only commands reconnect and retry.
 - PTSL has no commands for plug-ins, inserts or I/O lists. Its SaveSessionAs crashes Pro Tools

@@ -12,10 +12,10 @@ import json
 from .ptsl_commands import COMMANDS
 
 ADDRESS = "localhost:31416"
-# Number Pro Tools uses for the first colour in its palette. Avid's docs don't say;
-# -1 = "none" and -2 = "default" suggest counting starts at 0. If colours come out
-# one swatch off, change this to 1.
-COLOUR_BASE = 0
+# Pro Tools numbers its track colours from 1: SetTrackColor N applies the Nth colour of
+# GetColorPalette's list (checked on both the PT Deck and CHP Macs, Pro Tools 2026.11).
+# -1 = none, -2 = default.
+COLOUR_BASE = 1
 API_VERSION = (2026, 4, 0)       # PTSL SDK 2026.04
 STATUS = {0: "Queued", 1: "Pending", 2: "InProgress", 3: "Completed", 4: "Failed",
           5: "WaitingForUserInput", 6: "CompletedWithBadResponse", 7: "FailedWithBadErrorResponse"}

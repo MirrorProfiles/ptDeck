@@ -323,7 +323,7 @@ page settings:
 | `color bar` | `true`: track-colour stripe along the top |
 | `palette color` | A Pro Tools track-colour number (as `track color:` takes and the `colours` chart shows): the key shows that exact colour once PT Deck has read Pro Tools' palette; `color` is shown until then |
 | `gradient` | Background blended left to right through a list of colours, e.g. `['#1b3fae', '#e0242a']` (classic look) |
-| `lit menu` | A menu-bar path (`View > Clip > Name`): the key shows its lit look while that item is ticked. The deck follows ticks its own keys change straight away, and re-reads Pro Tools every few seconds |
+| `lit menu` | A menu-bar path (`View > Clip > Name`): the key shows its lit look while that item is ticked. A list of paths lights only when every one is ticked (e.g. `['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*']`; in the Manager, join them with ` + `). The deck follows ticks its own keys change straight away, and re-reads Pro Tools every few seconds |
 | `lit color` | Background while lit |
 | `lit label` | Label while lit (default: the normal label) |
 | `lit text color` | Label colour while lit |
@@ -453,7 +453,9 @@ Learned the hard way; each has a workaround in the code.
   at measured positions. Song names are only readable from a window picture (text recognition).
 - A tick in a closed menu can lag behind a change a key just made (seen while building CHP), so the deck
   remembers ticks its own menu steps changed and only lets a re-read override that when the re-read itself
-  changes. Items in a `… Mode` submenu (Solo Mode) are pick-one.
+  changes. Items in a `… Mode` submenu are pick-one **within their group**: Solo Mode has two groups split by
+  a separator (SIP / AFL / PFL and Latch / Momentary / X-OR), so X-OR unticks Latch but not AFL. The deck
+  reads the groups from the menu once; if it can't, it forgets the other items' ticks rather than guessing.
 - Fonts switched on through Adobe Fonts live in a hidden Creative Cloud folder under meaningless file names, so
   key fonts are looked up through macOS (CoreText) first, then by scanning the font folders.
 - Sending a character with Option held can type a different character (Option + minus types "–") instead

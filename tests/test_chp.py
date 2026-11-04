@@ -208,3 +208,59 @@ def test_palette_color_keys_show_pro_tools_colours(tmp_path):
     assert settings.get(tmp_path, "track palette")[1] == "#c80000"
     assert D.render(c.slots[0], 96, tmp_path).getpixel((48, 48)) == (200, 0, 0)
     assert c.poll_palette() == []                                   # read once per run
+
+
+def solo_mode_bar():
+    """Pro Tools' Solo Mode menu: two groups split by a separator."""
+    names = ["SIP (Solo In Place)", "AFL (After Fader Listen)", "PFL (Pre Fader Listen)", "",
+             "Latch", "Momentary", "X-OR (Cancels Previous Solo)"]
+    items = {n: El("AXMenuItem", n, AXMenuItemMarkChar=None) for n in names}
+    mode = El("AXMenuItem", "Solo Mode", [El("AXMenu", None, list(items.values()))])
+    bar = El("AXMenuBar", None, [El("AXMenuBarItem", "Options", [El("AXMenu", None, [mode])])])
+    return bar, items
+
+
+def test_solo_mode_has_two_pick_one_groups(tmp_path):
+    bar, _ = solo_mode_bar()
+    runner = Runner(FakeSys(make_app([El("AXWindow", "Edit: x")], bar)), Library(tmp_path), log=lambda m: None)
+    (tmp_path / "deck.yaml").write_text(yaml.safe_dump({"home": "Main", "pages": {"Main": [
+        {"key": 1, "label": "AFL X-OR", "macro": "a", "lit color": "#ffaa00",
+         "lit menu": ["Options > Solo Mode > AFL*", "Options > Solo Mode > X-OR*"]},
+        {"key": 2, "label": "SIP Latch", "macro": "b", "lit color": "#ffaa00",
+         "lit menu": ["Options > Solo Mode > SIP*", "Options > Solo Mode > Latch*"]}]}}))
+    c = D.DeckController(tmp_path, runner, log=lambda m: None)
+    c.slots = D.layout(c.cfg, "Main", 32)
+    key = Runner.menu_key
+    c.menu_lit.update({key("Options > Solo Mode > SIP*"): True, key("Options > Solo Mode > Latch*"): True,
+                       key("Options > Solo Mode > AFL*"): False, key("Options > Solo Mode > X-OR*"): False})
+    assert c.shown(1, c.slots[1])["color"] == "#ffaa00" and c.shown(0, c.slots[0]).get("color") != "#ffaa00"
+    # the AFL X-OR key: two menu steps
+    c.note_menu_changes([(key("Options > Solo Mode > AFL*"), None), (key("Options > Solo Mode > X-OR*"), None)])
+    assert c.menu_lit[key("Options > Solo Mode > AFL*")] is True          # X-OR didn't untick AFL
+    assert c.menu_lit[key("Options > Solo Mode > SIP*")] is False
+    assert c.menu_lit[key("Options > Solo Mode > Latch*")] is False
+    assert c.shown(0, c.slots[0])["color"] == "#ffaa00" and c.shown(1, c.slots[1]).get("color") != "#ffaa00"
+
+
+def test_unknown_menu_groups_are_forgotten_not_guessed(tmp_path):
+    c = deck_with(tmp_path, {"home": "Main", "pages": {"Main": [{"key": 1, "label": "x", "macro": "x"}]}})
+    c.menu_lit.update({"options > solo mode > afl*": True, "options > solo mode > latch*": True})
+    c.note_menu_changes([("options > solo mode > x-or*", None)])          # no Pro Tools to read groups from
+    assert c.menu_lit == {"options > solo mode > x-or*": True}           # others re-read later, not set off
+
+
+def test_lit_menu_list_needs_every_item_ticked(tmp_path):
+    bar, items = solo_mode_bar()
+    runner = Runner(FakeSys(make_app([El("AXWindow", "Edit: x")], bar)), Library(tmp_path), log=lambda m: None)
+    (tmp_path / "deck.yaml").write_text(yaml.safe_dump({"home": "Main", "pages": {"Main": [
+        {"key": 1, "label": "SIP X-OR", "macro": "a", "lit color": "#ffaa00",
+         "lit menu": ["Options > Solo Mode > SIP*", "Options > Solo Mode > X-OR*"]}]}}))
+    c = D.DeckController(tmp_path, runner, log=lambda m: None)
+    c.slots = D.layout(c.cfg, "Main", 32)
+    items["SIP (Solo In Place)"].a["AXMenuItemMarkChar"] = "✓"
+    items["Latch"].a["AXMenuItemMarkChar"] = "✓"
+    c.poll_menus(fresh=True)
+    assert c.shown(0, c.slots[0]).get("color") != "#ffaa00"                   # SIP + Latch: not this key
+    items["Latch"].a["AXMenuItemMarkChar"] = None
+    items["X-OR (Cancels Previous Solo)"].a["AXMenuItemMarkChar"] = "✓"
+    assert c.poll_menus(fresh=True) == [0] and c.shown(0, c.slots[0])["color"] == "#ffaa00"

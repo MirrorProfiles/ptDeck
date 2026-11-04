@@ -633,6 +633,15 @@ def gradient_image(colours, size: int) -> Image.Image:
     return img
 
 
+def lit_paths(button: dict) -> list[str]:
+    """A key's 'lit menu' as a list of menu paths: one path, or several that must all be ticked
+    (e.g. ['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*'])."""
+    v = button.get("lit menu") if button else None
+    if not v:
+        return []
+    return [str(p) for p in v] if isinstance(v, list) else [str(v)]
+
+
 def lit_button(button: dict, on) -> dict:
     """A 'lit menu' key: its lit look while that Pro Tools menu item is ticked."""
     if not on:
@@ -727,8 +736,7 @@ class DeckController:
     def shown(self, k, btn):
         """The button as drawn: live insert keys take their look from Pro Tools."""
         if btn and btn.get("lit menu"):
-            from .macros import Runner
-            return lit_button(btn, self.menu_lit.get(Runner.menu_key(btn["lit menu"])))
+            return lit_button(btn, self._lit(btn))
         if btn and btn.get("live"):
             return live_button(btn, self.live.get((self.page, k)), self.base)
         if btn and btn.get("live name"):
@@ -965,14 +973,13 @@ class DeckController:
             return []
         self._menus_at = now
         self.poller()
-        changed = []
-        for k, b in keys:
-            key = Runner.menu_key(b["lit menu"])
-            before = self.menu_lit.get(key)
+        before = {k: self._lit(b) for k, b in keys}
+        paths = {Runner.menu_key(p): p for _, b in keys for p in lit_paths(b)}   # each item read once
+        for key, path in paths.items():
             try:
                 item = self._menu_items.get(key)
                 if item is None:
-                    item, _ = self._poller._menu_item(b["lit menu"], open_menus=False)
+                    item, _ = self._poller._menu_item(path, open_menus=False)
                     if item is None:
                         continue
                     self._menu_items[key] = item
@@ -983,9 +990,15 @@ class DeckController:
             if key not in self._menu_read or self._menu_read[key] != ticked or key not in self.menu_lit:
                 self.menu_lit[key] = ticked
             self._menu_read[key] = ticked
-            if self.menu_lit.get(key) != before:
-                changed.append(k)
-        return changed
+        return [k for k, b in keys if self._lit(b) != before[k]]
+
+    def _lit(self, button) -> bool | None:
+        """Is this 'lit menu' key lit? All its menu items must be ticked (None if not known yet)."""
+        from .macros import Runner
+        states = [self.menu_lit.get(Runner.menu_key(p)) for p in lit_paths(button)]
+        if not states or any(s is None for s in states):
+            return None
+        return all(states)
 
     def poll_palette(self):
         """Read Pro Tools' track colours once per run (and remember them) for 'palette color' keys."""
@@ -1011,15 +1024,61 @@ class DeckController:
 
     def note_menu_changes(self, changes):
         """After a macro: record the ticks its menu steps changed, so 'lit menu' keys follow at once.
-        Items in a '... Mode' submenu are pick-one: choosing one unticks the others."""
+        Items in a '... Mode' submenu are pick-one within their group: Pro Tools' Solo Mode menu has
+        two groups split by a separator (SIP / AFL / PFL and Latch / Momentary / X-OR), so choosing
+        X-OR unticks Latch but leaves AFL alone. If the groups can't be read, other items in that
+        submenu are forgotten (re-read from Pro Tools) rather than guessed."""
+        import fnmatch
         for key, state in changes or []:
-            parent, _, _ = key.rpartition(" > ")
+            parent, _, leaf = key.rpartition(" > ")
             if parent.endswith("mode"):
-                for other in [o for o in self.menu_lit if o.startswith(parent + " > ")]:
-                    self.menu_lit[other] = False
+                group = self._menu_group(parent, leaf)
+                for other in [o for o in self.menu_lit if o.startswith(parent + " > ") and o != key]:
+                    other_leaf = other.rpartition(" > ")[2]
+                    if group is None:
+                        self.menu_lit.pop(other, None)
+                    elif any(fnmatch.fnmatchcase(t, other_leaf) for t in group):
+                        self.menu_lit[other] = False
                 self.menu_lit[key] = True
             else:
                 self.menu_lit[key] = (not self.menu_lit.get(key, False)) if state is None else bool(state)
+
+    def _menu_group(self, parent: str, leaf: str) -> list[str] | None:
+        """Titles (lowercase) of the items in leaf's group of a menu-bar submenu, split at its
+        separators; None if the submenu can't be read without opening it. Read once per submenu."""
+        import fnmatch
+        from . import elements as E
+        cache = self.__dict__.setdefault("_menu_groups", {})
+        if parent not in cache:
+            groups = None
+            try:
+                self.poller()
+                current = self._poller.app().attr("AXMenuBar")
+                for part in parent.split(" > "):
+                    item = next((c for c in E.children(current)
+                                 if fnmatch.fnmatchcase(E.norm(c.attr("AXTitle") or "").lower(), part)), None)
+                    current = next((c for c in E.children(item) if c.attr("AXRole") == "AXMenu"), None) if item else None
+                    if current is None:
+                        break
+                kids = E.children(current) if current is not None else []
+                if kids:
+                    groups, cur = [], []
+                    for c in kids:
+                        title = E.norm(c.attr("AXTitle") or "").lower()
+                        if title:
+                            cur.append(title)
+                        elif cur:                     # a separator ends a group
+                            groups.append(cur)
+                            cur = []
+                    if cur:
+                        groups.append(cur)
+                    self.log(f"menu groups in '{parent}': " + " | ".join(", ".join(g) for g in groups))
+            except Exception:  # noqa: BLE001 - Pro Tools closed: don't guess
+                groups = None
+            if groups is None:
+                return None
+            cache[parent] = groups
+        return next((g for g in cache[parent] if any(fnmatch.fnmatchcase(t, leaf) for t in g)), None)
 
     # After a key press, leave Pro Tools alone this long before reading the live keys, so it can
     # finish what the key asked for (moving the selection, opening a window...) first.

@@ -132,7 +132,7 @@ dialog::backdrop { background:rgba(0,0,0,.6); }
       </div>
       <details id="lit-box" style="margin-top:12px">
         <summary>Light up from a Pro Tools menu tick</summary>
-        <label>Menu item (e.g. View &gt; Clip &gt; Name). Leave empty for a normal key.</label>
+        <label>Menu item (e.g. View &gt; Clip &gt; Name). Several that must all be ticked: join with " + ". Leave empty for a normal key.</label>
         <input type="text" id="lit-menu" placeholder="View > Edit Window Views > Comments*">
         <label>Label while ticked (empty = same label)</label>
         <input type="text" id="lit-label">
@@ -391,7 +391,7 @@ function select(i) {
   $("#nocolor").checked = !b?.color; $("#color").value = /^#[0-9a-f]{6}$/i.test(b?.color||"") ? b.color : "#333333";
   $("#tcolor").value = /^#[0-9a-f]{6}$/i.test(b?.["text color"]||"") ? b["text color"] : "#ffffff";
   $("#macro-status").innerHTML = macroStatus(b?.macro);
-  $("#lit-menu").value = b?.["lit menu"] || ""; $("#lit-label").value = (b?.["lit label"] || "").replace(/\\n/g, "\n");
+  $("#lit-menu").value = [].concat(b?.["lit menu"] || []).join(" + "); $("#lit-label").value = (b?.["lit label"] || "").replace(/\\n/g, "\n");
   $("#lit-color").value = /^#[0-9a-f]{6}$/i.test(b?.["lit color"]||"") ? b["lit color"] : ($("#color").value || "#a3006e");
   $("#lit-tcolor").value = /^#[0-9a-f]{6}$/i.test(b?.["lit text color"]||"") ? b["lit text color"] : "#ffffff";
   $("#lit-box").open = !!b?.["lit menu"];
@@ -405,7 +405,8 @@ async function saveKey() {
   const b = Object.fromEntries(Object.entries(old).filter(([k]) => !EDITED.includes(k) && !k.startsWith("_")));
   const litMenu = $("#lit-menu").value.trim();
   if (litMenu) {
-    b["lit menu"] = litMenu; b["lit color"] = $("#lit-color").value;
+    const parts = litMenu.split(" + ").map(s => s.trim()).filter(Boolean);
+    b["lit menu"] = parts.length > 1 ? parts : parts[0]; b["lit color"] = $("#lit-color").value;
     b["lit text color"] = $("#lit-tcolor").value;
     const ll = $("#lit-label").value.trim(); if (ll) b["lit label"] = ll.replace(/\n/g, "\\n");
   }

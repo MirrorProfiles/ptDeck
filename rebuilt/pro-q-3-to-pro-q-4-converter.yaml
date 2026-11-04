@@ -1,0 +1,9 @@
+# Rebuilt for PT Deck from Tristan Hoogland's SoundFlow converter.
+# Asks: Single Instance / Selected Tracks / Entire Session.
+# Before running: set Pro-Q 4's window scale to MEDIUM (open any Pro-Q 4 once and set it).
+# 'scale' is your usual Pro-Q 3 window scale (it tries the others too).
+name: Pro-Q 3 to Pro-Q 4 Converter
+steps:
+- convert pro-q 3 to 4:
+  scope: ask
+  scale: medium

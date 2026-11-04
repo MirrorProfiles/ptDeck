@@ -1,0 +1,14 @@
+# Rebuilt for PT Deck
+# Toggles MetricAB's Loudness Match for the selected reference.
+# Opens MetricAB on -OUT MASTER if needed (and closes it again afterwards).
+name: Metric Loudness Match
+steps:
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: open
+
+- metric button: match
+
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: restore

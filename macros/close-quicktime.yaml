@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Close Quicktime
+steps:
+- quit app: com.apple.QuickTimePlayerX

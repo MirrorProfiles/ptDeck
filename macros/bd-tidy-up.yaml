@@ -1,0 +1,94 @@
+# Imported from SoundFlow
+name: BD Tidy Up
+steps:
+- run macro: Copy
+
+- press: ctrl+alt+backslash
+
+- wait: 500ms
+
+- todo: (throw 'context missing').paste()
+
+- press: alt+shift+r
+
+- wait: 500ms
+
+- checkbox: Replace
+  set: on
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- checkbox: Add
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Numbering
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Clear Existing Name
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Regular Expressions
+  set: off
+  window: Batch Track Rename
+
+- click: '#1'
+  kind: text field
+  window: Batch Track Rename
+
+- type: Comp
+
+- click: '#2'
+  kind: text field
+  window: Batch Track Rename
+
+- todo: 'sf.ui.proTools.windows.whoseTitle.is("Batch Track Rename").first.textFields.whoseValue.is("0").allItems[1].elementSetTextFieldWithAreaValue({ value: "3", })'
+
+- type: Edited
+
+- click: OK
+  kind: button
+  window: Batch Track Rename
+
+- press: ctrl+alt+backslash
+
+- wait: 500ms
+
+- todo: (throw 'context missing').paste()
+
+- press: alt+shift+r
+
+- wait: 500ms
+
+- click: '#1'
+  kind: text field
+  window: Batch Track Rename
+
+- type: Edited
+
+- click: '#2'
+  kind: text field
+  window: Batch Track Rename
+
+- type: C
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- click: '#4'
+  kind: text field
+  window: Batch Track Rename
+
+- type: '3'
+
+- click: OK
+  kind: button
+  window: Batch Track Rename
+
+- menu: Edit > Consolidate Clip

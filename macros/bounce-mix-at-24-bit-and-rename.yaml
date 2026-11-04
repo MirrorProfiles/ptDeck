@@ -1,0 +1,9 @@
+name: Bounce Mix at 24 Bit and Rename
+steps:
+- activate: Pro Tools
+
+- bounce dialog:
+  name: "{date}_{session}_EASMIX_{rate}_{bits}.wav"
+  source: "Built-in Output 1-2 (Stereo)*"
+  bits: 24
+  offline: auto

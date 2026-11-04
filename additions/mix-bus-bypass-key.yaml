@@ -1,0 +1,4 @@
+# Mix Bus: a key on the right that bypasses whichever (PRINT) plug-in window is open.
+add to page: Mix Bus
+buttons:
+- {key: 16, label: "BYPASS\nOpen Plug-in", macro: Bypass Open Print Plugin, color: '#6a5410', font size: 17}

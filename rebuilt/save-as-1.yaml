@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck (uses the Pro Tools Scripting SDK)
+# Saves, then saves a new copy with the next number: Song.03 -> Song.04 (Song -> Song.01)
+name: Save As +1
+steps:
+- save new version

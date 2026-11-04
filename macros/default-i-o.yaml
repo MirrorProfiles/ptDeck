@@ -1,0 +1,32 @@
+# Imported from SoundFlow
+name: Default I/O
+steps:
+- menu: Setup > I/O...
+
+- click: Output 2 of 7
+  kind: radio button
+  window: I/O Setup
+
+- click: Default
+  kind: button
+  window: I/O Setup
+
+- click: Input 1 of 7
+  kind: radio button
+  window: I/O Setup
+
+- click: Default
+  kind: button
+  window: I/O Setup
+
+- click: Bus 3 of 7
+  kind: radio button
+  window: I/O Setup
+
+- click: Default
+  kind: button
+  window: I/O Setup
+
+- click: OK
+  kind: button
+  window: I/O Setup

@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: adds a send to the //[CHORUS] bus on the selected tracks (first free send).
+# The bus name must match Pro Tools exactly.
+name: Send to CHORUS
+steps:
+- send: "//[CHORUS]"
+  slot: first free

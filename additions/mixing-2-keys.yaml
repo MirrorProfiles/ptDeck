@@ -1,0 +1,6 @@
+# Mixing: tools for the open plug-in window, down the right-hand side with Bypass:
+# Active/Inactive at the top, Remove at the bottom right (away from everyday keys).
+add to page: Mixing
+buttons:
+- {key: 8, label: "Active /\nInactive", macro: Toggle Open Plugin Active, glyph: power, color: '#3a3f46'}
+- {key: 32, label: "REMOVE\nPlug-in", macro: Remove Open Plugin, glyph: trash, color: '#6d0b0a'}

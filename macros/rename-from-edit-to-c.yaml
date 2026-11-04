@@ -1,0 +1,38 @@
+# Imported from SoundFlow
+name: Rename from .Edit to .C
+steps:
+- press: ctrl+cmd+backslash
+
+- wait: 200ms
+
+- press: alt+shift+r
+
+- checkbox: Replace
+  set: on
+  window: Batch Track Rename
+
+- set text: '#1'
+  to: Edit.01
+  kind: text field
+  window: Batch Track Rename
+
+- set text: '#2'
+  to: C
+  kind: text field
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Add
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Numbering
+  set: off
+  window: Batch Track Rename
+
+- click: OK
+  kind: button
+  window: Batch Track Rename

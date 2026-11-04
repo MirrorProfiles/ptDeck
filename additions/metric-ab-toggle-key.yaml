@@ -1,0 +1,10 @@
+# The Metric A/B toggle key shows which side is playing: a big A (orange) or B (dark).
+update buttons on: Metric A/B
+buttons:
+- macro: toggle-metric-a-b
+  set:
+    metric ab: true
+  remove:
+  - icon
+  - label
+  - color

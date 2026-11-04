@@ -1,0 +1,9 @@
+# Tidied Bounce Mix page (replaces the page once; the top row shows the page name).
+page: Bounce Mix
+version: 2
+buttons:
+- {key: 10, icon: save.png, macro: file-save}
+- {key: 11, icon: save-plus-1.png, macro: save-as-1}
+- {key: 18, label: "Bounce\n24 Bit\nOffline", macro: Bounce Mix at 24 Bit and Rename, color: "#7a2a10"}
+- {key: 19, label: "Bounce\n24 Bit\nReal-time", macro: Bounce Mix at 24 Bit and Rename (Real-time), color: "#3a2a10"}
+- {key: 20, label: "Bounce\n32 Bit Float\nOffline", macro: Bounce Mix at 32 Bit Float and Rename, color: "#10427a"}

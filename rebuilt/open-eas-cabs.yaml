@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck: opens the EAS CABS impulse folder in Finder.
+name: Open EAS Cabs
+steps:
+- open: "/Volumes/Seagate Desktop/SAMPLES/Impulses/Good 3rd Party/EAS CABS/EAS CABS"

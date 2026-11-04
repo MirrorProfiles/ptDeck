@@ -1,0 +1,4 @@
+# Bounce Mix: an Audio Files folder key beside Bounced Files - Folder.
+add to page: Bounce Mix
+buttons:
+- {key: 23, label: Audio Files - Folder, macro: Audio Files Folder, color: '#bc2488', glyph: folder}

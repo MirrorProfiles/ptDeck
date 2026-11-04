@@ -1,0 +1,574 @@
+{
+ "Route Tracks to [DRUMS]": {
+  "last_run": "31 Oct 13:44",
+  "last_result": "ok",
+  "message": ""
+ },
+ "route-tracks-to-drums": {
+  "last_run": "31 Oct 13:44",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Route Tracks to (PRINT)": {
+  "last_run": "31 Oct 13:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Remove Inactive Plugins": {
+  "last_run": "31 Oct 20:35",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Rearrange inserts to beginning": {
+  "last_run": "31 Oct 14:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Narrow Mix View Toggle": {
+  "last_run": "02 Nov 17:00",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Pro-Q 3 to Pro-Q 4 Converter": {
+  "last_run": "31 Oct 13:59",
+  "last_result": "error",
+  "message": "'Pro-Q 3 to Pro-Q 4 Converter' stopped at step 1 (convert pro-q 3 to 4): Assertion in \"/Users/autobld/gitlabci/PT/release/2026/r1/ProTools/NewFileLibs/Sys/MacOS/Sys_FileLocMacOS.cpp\", line 129.\n\n(Use the Copy button to copy this message to the clipboard.)"
+ },
+ "Clip Gain - Reduce 5dB": {
+  "last_run": "31 Oct 20:33",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Toggle TCE and Smart Tool": {
+  "last_run": "31 Oct 14:38",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Delete Empty Audio Tracks in Selection": {
+  "last_run": "31 Oct 14:54",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Commit Track": {
+  "last_run": "31 Oct 14:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Commit - Edit Sel - Offline - Hide": {
+  "last_run": "31 Oct 14:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Commit - Edit Sel - Offline - Do Nothing": {
+  "last_run": "31 Oct 14:53",
+  "last_result": "error",
+  "message": "'Commit - Edit Sel - Offline - Do Nothing' stopped at step 9 (click): window 'Commit Tracks' (waited 5s)"
+ },
+ "Import IO Setup based on Sample Rate": {
+  "last_run": "31 Oct 14:59",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Default I/O": {
+  "last_run": "02 Nov 12:22",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Buffer 1024": {
+  "last_run": "01 Nov 12:45",
+  "last_result": "ok",
+  "message": "",
+  "verdict": "broken",
+  "verdict_at": "31 Oct 15:01"
+ },
+ "Buffer 128": {
+  "last_run": "03 Nov 12:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bypass All Sends on Selected Track": {
+  "last_run": "01 Nov 15:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Clear All Sends": {
+  "last_run": "01 Nov 15:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Save As +1": {
+  "last_run": "01 Nov 15:18",
+  "last_result": "ok",
+  "message": ""
+ },
+ "save-as-1": {
+  "last_run": "31 Oct 15:16",
+  "last_result": "error",
+  "message": "'Save As +1' stopped at step 1 (save new version): Assertion in \"/Users/autobld/gitlabci/PT/release/2026/r1/ProTools/NewFileLibs/Sys/MacOS/Sys_FileLocMacOS.cpp\", line 129.\n\n(Use the Copy button to copy this message to the clipboard.)"
+ },
+ "Bounce Mix at 24 Bit and Rename": {
+  "last_run": "02 Nov 12:44",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bounce Mix at 24 Bit and Rename (Real-time)": {
+  "last_run": "02 Nov 12:39",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bounced Files Folder": {
+  "last_run": "03 Nov 10:24",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Set Grid to 1/16": {
+  "last_run": "31 Oct 19:58",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Set Grid to 1/4": {
+  "last_run": "31 Oct 19:58",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Set Grid to 1/8": {
+  "last_run": "31 Oct 19:58",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Set Grid to 1/32": {
+  "last_run": "31 Oct 19:58",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Toggle Grid to Triplet": {
+  "last_run": "31 Oct 19:58",
+  "last_result": "ok",
+  "message": ""
+ },
+ "BD Tom Clean Bleed": {
+  "last_run": "31 Oct 20:00",
+  "last_result": "error",
+  "message": "Pro Tools isn't running"
+ },
+ "Tom Clean Bleed": {
+  "last_run": "31 Oct 20:15",
+  "last_result": "ok",
+  "message": ""
+ },
+ "New .Comp Playlist": {
+  "last_run": "31 Oct 20:21",
+  "last_result": "error",
+  "message": "'New .Comp Playlist' stopped at step 4 (checkbox): window 'Batch Track Rename' (waited 5s)"
+ },
+ "RX De-Click": {
+  "last_run": "31 Oct 20:33",
+  "last_result": "ok",
+  "message": ""
+ },
+ "RX Mouth De-Click": {
+  "last_run": "31 Oct 20:33",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Stereo to Mono Track": {
+  "last_run": "31 Oct 20:39",
+  "last_result": "error",
+  "message": "No macro called 'Stereo to Mono Track' in the macros folder. If it's a SoundFlow command, import it too (see README)."
+ },
+ "Stereo": {
+  "last_run": "02 Nov 16:12",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Mono": {
+  "last_run": "01 Nov 12:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to PLATE": {
+  "last_run": "31 Oct 20:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to NONLIN": {
+  "last_run": "31 Oct 20:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to VOXVERB": {
+  "last_run": "31 Oct 20:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to SLAP DELAY": {
+  "last_run": "31 Oct 20:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to CHAMBER": {
+  "last_run": "31 Oct 20:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Send to SHIMMER": {
+  "last_run": "01 Nov 15:13",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 3": {
+  "last_run": "03 Nov 22:37",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 2": {
+  "last_run": "31 Oct 21:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 4": {
+  "last_run": "31 Oct 20:49",
+  "last_result": "error",
+  "message": "'Open Mix Bus Plugin 4' stopped at step 1 (plugin window): track '[[OUTPUTBUS]]' (waited 3s)"
+ },
+ "Open Mix Bus Plugin 5": {
+  "last_run": "03 Nov 22:37",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 5 Toggle": {
+  "last_run": "01 Nov 15:15",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 4 Toggle": {
+  "last_run": "03 Nov 17:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 6 Toggle": {
+  "last_run": "31 Oct 20:46",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 7 Toggle": {
+  "last_run": "01 Nov 15:00",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 10 Toggle": {
+  "last_run": "31 Oct 20:47",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 9 Toggle": {
+  "last_run": "03 Nov 22:36",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 8 Toggle": {
+  "last_run": "03 Nov 22:31",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 9": {
+  "last_run": "01 Nov 13:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 10": {
+  "last_run": "03 Nov 22:37",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 8": {
+  "last_run": "01 Nov 13:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 6": {
+  "last_run": "01 Nov 13:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 7": {
+  "last_run": "01 Nov 13:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Drum Bus EQ": {
+  "last_run": "31 Oct 20:59",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 1 Toggle": {
+  "last_run": "03 Nov 17:13",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 2 Toggle": {
+  "last_run": "03 Nov 22:36",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Insert 3 Toggle": {
+  "last_run": "03 Nov 22:30",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open VU Meter": {
+  "last_run": "01 Nov 15:14",
+  "last_result": "ok",
+  "message": ""
+ },
+ "SIP Latch": {
+  "last_run": "31 Oct 21:00",
+  "last_result": "ok",
+  "message": ""
+ },
+ "SIP X-OR": {
+  "last_run": "31 Oct 21:00",
+  "last_result": "ok",
+  "message": ""
+ },
+ "AFL X-OR": {
+  "last_run": "31 Oct 21:00",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Metric A/B": {
+  "last_run": "03 Nov 22:49",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot B1": {
+  "last_run": "01 Nov 13:54",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot C1": {
+  "last_run": "01 Nov 13:54",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot A1": {
+  "last_run": "01 Nov 13:54",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot D1": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot B2": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot C3": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot D3": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Toggle Metric A/B": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot D4": {
+  "last_run": "01 Nov 15:02",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot C4": {
+  "last_run": "01 Nov 15:02",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot D2": {
+  "last_run": "03 Nov 22:49",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot C2": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot A2": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot B3": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot A3": {
+  "last_run": "03 Nov 22:48",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot B4": {
+  "last_run": "01 Nov 15:02",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bypass Open Print Plugin": {
+  "last_run": "31 Oct 21:43",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open Mix Bus Plugin 1": {
+  "last_run": "01 Nov 13:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Finder": {
+  "last_run": "01 Nov 11:30",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bypass Open Plugin": {
+  "last_run": "03 Nov 22:37",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Toggle Open Plugin Active": {
+  "last_run": "03 Nov 22:36",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Remove Open Plugin": {
+  "last_run": "03 Nov 22:36",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Open fMusic": {
+  "last_run": "01 Nov 12:41",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Assign RenAxx": {
+  "last_run": "01 Nov 12:51",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Assign UADx 1176 Blue": {
+  "last_run": "01 Nov 12:51",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Set Input to RME L": {
+  "last_run": "01 Nov 12:43",
+  "last_result": "error",
+  "message": "'Set Input to RME L' stopped at step 1 (input): 'RME L' in the pop-up menu"
+ },
+ "Add Tuner to First Insert Slot": {
+  "last_run": "01 Nov 12:50",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Add New Click Track": {
+  "last_run": "01 Nov 12:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Reset Buffer": {
+  "last_run": "01 Nov 12:45",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Ampete Amp 2 On": {
+  "last_run": "01 Nov 12:46",
+  "last_result": "error",
+  "message": "'Ampete Amp 2 On' stopped at step 1 (midi cc): MIDI port 'Maschine MK3' not found. Available: Euphonix MIDI Euphonix Port 1, Euphonix MIDI Euphonix Port 2, Euphonix MIDI Euphonix Port 3, Euphonix MIDI Euphonix Port 4, ADI-2 Pro (51092374) Port 1, Arturia KeyStep 37, RME ARC, USB MIDI Device"
+ },
+ "Ampete Amp 1 On": {
+  "last_run": "01 Nov 18:02",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Ampete Amp 43 On": {
+  "last_run": "01 Nov 12:46",
+  "last_result": "error",
+  "message": "'Ampete Amp 43 On' stopped at step 1 (midi cc): MIDI port 'Maschine MK3' not found. Available: Euphonix MIDI Euphonix Port 1, Euphonix MIDI Euphonix Port 2, Euphonix MIDI Euphonix Port 3, Euphonix MIDI Euphonix Port 4, ADI-2 Pro (51092374) Port 1, Arturia KeyStep 37, RME ARC, USB MIDI Device"
+ },
+ "NAM": {
+  "last_run": "01 Nov 13:04",
+  "last_result": "ok",
+  "message": ""
+ },
+ "LIBRA": {
+  "last_run": "01 Nov 12:51",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Clear All Plugins on Track": {
+  "last_run": "01 Nov 12:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Assign UADx 1073": {
+  "last_run": "01 Nov 12:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Assign Pro-Q 4": {
+  "last_run": "01 Nov 12:52",
+  "last_result": "ok",
+  "message": ""
+ },
+ "EAS Session Data": {
+  "last_run": "01 Nov 13:59",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Slot A4": {
+  "last_run": "03 Nov 22:47",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Metric Sides": {
+  "last_run": "03 Nov 22:49",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Metric Match All References": {
+  "last_run": "01 Nov 15:09",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Metric Loudness Match": {
+  "last_run": "03 Nov 22:49",
+  "last_result": "error",
+  "message": "'Metric Loudness Match' stopped at step 2 (metric button): MetricAB's Match button didn't switch"
+ },
+ "Edit Selection Up": {
+  "last_run": "03 Nov 22:27",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Edit Selection Down": {
+  "last_run": "03 Nov 22:35",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Bounce Mix at 32 Bit Float and Rename": {
+  "last_run": "02 Nov 12:39",
+  "last_result": "ok",
+  "message": ""
+ },
+ "Audio Files Folder": {
+  "last_run": "03 Nov 10:24",
+  "last_result": "ok",
+  "message": ""
+ }
+}

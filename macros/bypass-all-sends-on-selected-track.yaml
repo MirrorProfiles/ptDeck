@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Bypass All Sends on Selected Track
+steps:
+- menu: Track > Mute Sends > All

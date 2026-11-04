@@ -1,0 +1,4 @@
+# The Mix Bus page becomes 'Mixing' (it now covers the selected track as well as (PRINT)).
+rename page:
+  from: Mix Bus
+  to: Mixing

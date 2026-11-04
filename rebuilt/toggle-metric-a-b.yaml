@@ -1,0 +1,14 @@
+# Rebuilt for PT Deck
+# Flips MetricAB's A/B switch on -OUT MASTER. If the window wasn't open, it's opened for a
+# moment and closed again; if you had it open, it stays open.
+name: Toggle Metric A/B
+steps:
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: open
+
+- metric ab: toggle
+
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: restore

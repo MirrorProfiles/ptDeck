@@ -1,0 +1,5 @@
+name: Set Grid to 1/16
+steps:
+- popup: Grid Value
+  choose: 1/16 note
+  window: "Edit:*"

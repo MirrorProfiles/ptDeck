@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck
+# Removes inactive plug-ins and sends from the selected tracks.
+name: Remove Inactive Plugins
+steps:
+- remove inactive: both
+  tracks: selected

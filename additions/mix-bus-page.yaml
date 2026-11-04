@@ -1,0 +1,31 @@
+# Mix Bus: the top half follows the SELECTED track, the bottom half the (PRINT) track.
+# Each key shows that insert's plug-in, lit by its state; press to open/close its window.
+# Your own extra keys on this page are kept where there's room.
+page: Mix Bus
+version: 2
+keep others: true
+replaces: [Bypass Open Print Plugin]
+buttons:
+- {key: 9, live name: selected}
+- {key: 17, live name: (PRINT)}
+- {key: 16, label: "BYPASS\nOpen Plug-in", macro: Bypass Open Plugin, color: '#6a5410'}
+- {key: 2, live: 1, live track: selected, macro: Insert 1 Toggle}
+- {key: 3, live: 2, live track: selected, macro: Insert 2 Toggle}
+- {key: 4, live: 3, live track: selected, macro: Insert 3 Toggle}
+- {key: 5, live: 4, live track: selected, macro: Insert 4 Toggle}
+- {key: 6, live: 5, live track: selected, macro: Insert 5 Toggle}
+- {key: 10, live: 6, live track: selected, macro: Insert 6 Toggle}
+- {key: 11, live: 7, live track: selected, macro: Insert 7 Toggle}
+- {key: 12, live: 8, live track: selected, macro: Insert 8 Toggle}
+- {key: 13, live: 9, live track: selected, macro: Insert 9 Toggle}
+- {key: 14, live: 10, live track: selected, macro: Insert 10 Toggle}
+- {key: 18, live: 1, live track: (PRINT), macro: Open Mix Bus Plugin 1}
+- {key: 19, live: 2, live track: (PRINT), macro: Open Mix Bus Plugin 2}
+- {key: 20, live: 3, live track: (PRINT), macro: Open Mix Bus Plugin 3}
+- {key: 21, live: 4, live track: (PRINT), macro: Open Mix Bus Plugin 4}
+- {key: 22, live: 5, live track: (PRINT), macro: Open Mix Bus Plugin 5}
+- {key: 26, live: 6, live track: (PRINT), macro: Open Mix Bus Plugin 6}
+- {key: 27, live: 7, live track: (PRINT), macro: Open Mix Bus Plugin 7}
+- {key: 28, live: 8, live track: (PRINT), macro: Open Mix Bus Plugin 8}
+- {key: 29, live: 9, live track: (PRINT), macro: Open Mix Bus Plugin 9}
+- {key: 30, live: 10, live track: (PRINT), macro: Open Mix Bus Plugin 10}

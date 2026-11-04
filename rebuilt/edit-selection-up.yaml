@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck
+# Moves the Edit window's selection up a track (the P key in Pro Tools).
+name: Edit Selection Up
+steps:
+- activate: Pro Tools
+- press: p

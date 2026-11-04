@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: switches the Trim tool between Standard and TCE.
+# Smart mode (or whichever tool you had selected) is left exactly as it was.
+name: Toggle TCE and Smart Tool
+steps:
+- toggle tce trim

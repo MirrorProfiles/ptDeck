@@ -1,0 +1,16 @@
+# Imported from SoundFlow
+name: AIRPOD MAX
+steps:
+- open: /System/Applications/QuickTime Player.app
+
+- wait: 500ms
+
+- menu: File > New Audio Recording
+  app: com.apple.QuickTimePlayerX
+
+- wait: 1500ms
+
+- popup: show capture device selection pop up
+  choose: Pro Tools Audio Bridge 2-A
+  kind: button
+  app: com.apple.QuickTimePlayerX

@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Copy Selection To Target Playlist
+steps:
+- press: alt+shift+up

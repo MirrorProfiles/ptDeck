@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck (replaces SoundFlow's Pro Tools package command)
+name: Close First AudioSuite plugin
+steps:
+- close window: "Audio*Suite*"

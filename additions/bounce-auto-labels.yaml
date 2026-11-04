@@ -1,0 +1,6 @@
+# Bounce Mix: the 'Offline' bounce keys now choose for themselves (Real-time if a hardware
+# insert is active, otherwise Offline), so their labels say Auto.
+update buttons on: Bounce Mix
+buttons:
+- {macro: Bounce Mix at 24 Bit and Rename, set: {label: "Bounce\n24 Bit\nAuto"}}
+- {macro: Bounce Mix at 32 Bit Float and Rename, set: {label: "Bounce\n32 Bit Float\nAuto"}}

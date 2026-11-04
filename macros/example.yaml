@@ -1,0 +1,36 @@
+# An example showing every kind of step. Not meant to be run as-is.
+# Lines starting with # are notes and are ignored.
+name: Example
+steps:
+- activate: Pro Tools                # bring Pro Tools to the front
+
+- menu: Track > New...               # click a menu item
+
+- wait for window: New Tracks        # wait (up to 15s) for a window to open
+
+- press: cmd+a                       # keyboard shortcut. Several: "cmd+a, return"
+  times: 1
+
+- type: Lead Vocal                   # type text
+
+- popup: "#1"                        # pick from a pop-up menu (#1 = the first one)
+  choose: Stereo
+  window: New Tracks
+  optional: true                     # if it isn't there, skip instead of stopping
+
+- checkbox: Create next to current track
+  set: on                            # on / off / toggle
+  window: New Tracks
+
+- click: Create                      # click a button by its name
+  window: New Tracks
+
+- wait for window: New Tracks
+  gone: true                         # wait until it closes
+
+- wait: 0.5                          # pause: 0.5, 500ms, 2s
+
+- click at: [120, 40]                # click zone: 120 across, 40 down from the
+  window: main                       # top-left of the main Pro Tools window
+
+- run macro: EAS Session Data        # run another macro

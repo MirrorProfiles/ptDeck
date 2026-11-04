@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck: opens the current session's Audio Files folder in Finder.
+name: Audio Files Folder
+steps:
+- open session folder: Audio Files

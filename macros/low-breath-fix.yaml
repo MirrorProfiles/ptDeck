@@ -1,0 +1,8 @@
+# Imported from SoundFlow
+name: Low Breath Fix
+steps:
+- audiosuite: EQ3 7-Band
+
+- audiosuite preset: EAS Breath Fix
+
+- audiosuite render

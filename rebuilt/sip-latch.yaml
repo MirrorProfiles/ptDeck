@@ -1,0 +1,7 @@
+# Rebuilt for PT Deck: sets Pro Tools' solo mode (Options > Solo Mode).
+# The * matches the rest of the menu item's name.
+name: SIP Latch
+steps:
+- menu: "Options > Solo Mode > SIP*"
+
+- menu: "Options > Solo Mode > Latch*"

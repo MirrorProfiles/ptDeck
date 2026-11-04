@@ -1,0 +1,5 @@
+# Mixing: move the Edit window selection up / down a track (Pro Tools' P and ; keys).
+add to page: Mixing
+buttons:
+- {key: 23, label: "Selection\nUp", macro: Edit Selection Up, glyph: arrow-up, color: '#3a3f46'}
+- {key: 31, label: "Selection\nDown", macro: Edit Selection Down, glyph: arrow-down, color: '#3a3f46'}

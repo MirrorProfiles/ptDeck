@@ -1,0 +1,8 @@
+# Rebuilt for PT Deck
+# Removes inactive plug-ins and sends from every shown track in the session.
+# (The SoundFlow version asked which to remove. Change 'both' to 'plugins' or
+#  'sends', or make separate buttons for each.)
+name: Remove Inactive Plugins From Session
+steps:
+- remove inactive: both
+  tracks: all

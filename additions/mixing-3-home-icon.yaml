@@ -1,0 +1,4 @@
+# Home: the Mixing folder's picture says MIXING.
+update buttons on: Home
+buttons:
+- {folder: Mixing, set: {icon: folder-mixing.png, outline: none}}

@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #624200).
+# Change the colour code, or use a palette number (see 'ptdeck colours').
+name: Colour Vocals
+steps:
+- track color: "#624200"

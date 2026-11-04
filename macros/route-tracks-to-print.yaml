@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Route Tracks to (PRINT)
+steps:
+- output: Stereo > bus > (PRINT)

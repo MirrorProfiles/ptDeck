@@ -1,0 +1,9 @@
+# Rebuilt for PT Deck: lowers the selected clips' clip gain by 5 dB.
+# Uses Pro Tools' clip gain nudge (Control+Shift+Down). Each press = your
+# "Clip Gain Nudge Value" (Preferences > Editing), 0.5 dB by default, so 10 presses = -5 dB.
+name: Clip Gain - Reduce 5dB
+steps:
+- activate: Pro Tools
+
+- press: ctrl+shift+down
+  times: 10

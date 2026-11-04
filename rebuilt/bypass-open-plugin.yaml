@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck
+# Bypasses (or un-bypasses) the plug-in window that's open, on any track (the front one if
+# there are several).
+name: Bypass Open Plugin
+steps:
+- bypass open plugin:

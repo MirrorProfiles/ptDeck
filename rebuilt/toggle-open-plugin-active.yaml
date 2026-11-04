@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck
+# Makes the open plug-in window's plug-in inactive (or active again), whichever track it's on.
+name: Toggle Open Plugin Active
+steps:
+- toggle open plugin active:

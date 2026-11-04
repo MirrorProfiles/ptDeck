@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck (replaces SoundFlow's Pro Tools package command)
+name: Create Click Track
+steps:
+- menu: Track > Create Click Track

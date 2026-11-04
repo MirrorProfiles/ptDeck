@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: on each selected track, drags the plug-ins up into the
+# earliest empty insert slots, keeping their order (A, B, C ... with no gaps).
+name: Rearrange inserts to beginning
+steps:
+- compact inserts:
+  tracks: selected

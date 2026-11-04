@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck
+# Bypasses (or un-bypasses) whichever plug-in window is open (any track, not just (PRINT)).
+name: Bypass Open Print Plugin
+steps:
+- bypass open plugin:

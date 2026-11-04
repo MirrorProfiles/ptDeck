@@ -1,0 +1,4 @@
+# Home: the SOLO MODES folder gets the Pro Tools solo-button picture.
+update buttons on: Home
+buttons:
+- {folder: SOLO MODES, set: {icon: folder-solo-modes.png, outline: none}, remove: [label]}

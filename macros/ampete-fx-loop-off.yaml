@@ -1,0 +1,7 @@
+# Imported from SoundFlow
+name: Ampete FX Loop Off
+steps:
+- midi cc: 88
+  value: 0
+  channel: 1
+  port: Maschine MK3

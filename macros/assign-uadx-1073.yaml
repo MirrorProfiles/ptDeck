@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Assign UADx 1073
+steps:
+- insert plugin: UADx Neve 1073 Preamp and EQ
+  slot: first free
+  category: Universal Audio (UADx)

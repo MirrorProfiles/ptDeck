@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>PT Deck</string>
+	<key>CFBundleExecutable</key>
+	<string>PT Deck</string>
+	<key>CFBundleIconFile</key>
+	<string>PTDeck</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.easstudios.ptdeck</string>
+	<key>CFBundleName</key>
+	<string>PT Deck</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>PT Deck controls Pro Tools for your Stream Deck macros.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+</dict>
+</plist>

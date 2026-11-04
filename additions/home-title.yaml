@@ -1,0 +1,12 @@
+# Home: an EAS STUDIOS title across the top row (Overlook carpet, Black Lodge floor).
+# Only fills keys that are empty; the keys don't do anything when pressed.
+add to page: Home
+buttons:
+- {key: 1, icon: home-title-1.png}
+- {key: 2, icon: home-title-2.png}
+- {key: 3, icon: home-title-3.png}
+- {key: 4, icon: home-title-4.png}
+- {key: 5, icon: home-title-5.png}
+- {key: 6, icon: home-title-6.png}
+- {key: 7, icon: home-title-7.png}
+- {key: 8, icon: home-title-8.png}

@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck: opens fMusic (stem export).
+name: Open fMusic
+steps:
+- open: /Applications/fMusic.app

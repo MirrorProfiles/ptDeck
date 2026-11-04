@@ -1,0 +1,7 @@
+# Rebuilt for PT Deck: opens/closes insert 6 on the (PRINT) track, from the Edit or Mix window.
+# Change "(PRINT)" if your mix bus track has a different name.
+name: Open Mix Bus Plugin 6
+steps:
+- plugin window: 6
+  track: "(PRINT)"
+  if empty: choose plug-in

@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: removes every plug-in from the selected tracks.
+name: Clear All Plugins on Track
+steps:
+- clear: plugins
+  tracks: selected

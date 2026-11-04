@@ -1,0 +1,8 @@
+# Rebuilt for PT Deck: opens/closes the plug-in window in insert 1 on the selected track.
+# An empty slot opens its plug-in menu instead: type to search, Return to add.
+name: Insert 1 Toggle
+steps:
+- plugin window: 1
+  tracks: selected
+  set: toggle
+  if empty: choose plug-in

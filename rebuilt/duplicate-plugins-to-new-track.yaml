@@ -1,0 +1,67 @@
+# Rebuilt for PT Deck
+# Makes a new track with just the selected track's plug-ins (and their settings): Track >
+# Duplicate with only 'Inserts' ticked. No clips, playlists, sends or automation come along.
+name: Duplicate Plug-ins to New Track
+steps:
+- menu: Track > Duplicate...
+
+- wait for window: Duplicate Tracks
+
+- set text: "#1"
+  to: "1"
+  typing: true
+  window: Duplicate Tracks
+
+- checkbox: Inserts
+  set: on
+  window: Duplicate Tracks
+
+- checkbox: Active Playlist
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Alternate Playlists
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Automation
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Sends
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Markers
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Comments
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Group assignments
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: All Member Tracks
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Elastic Audio algorithm
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: ARA plugin assignment
+  set: off
+  window: Duplicate Tracks
+
+- checkbox: Insert after last selected track
+  set: on
+  window: Duplicate Tracks
+
+- click: OK
+  window: Duplicate Tracks
+
+- wait for window: Duplicate Tracks
+  gone: true

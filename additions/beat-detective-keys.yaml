@@ -1,0 +1,17 @@
+# Beat Detective page: the BD keys get a BEAT DETECTIVE strip (and lose the 'BD' prefix);
+# every playlist key uses the same playlist picture.
+update buttons on: Beat Detective
+buttons:
+- {macro: 'BD: 8th Note', set: {label: '8th Note', strip: Beat Detective}}
+- {macro: 'BD: 8th Note Triplet', set: {label: '8th Note Triplet', strip: Beat Detective}}
+- {macro: 'BD: 16th Note', set: {label: '16th Note', strip: Beat Detective}}
+- {macro: 'BD: 16th Note Triplet', set: {label: '16th Note Triplet', strip: Beat Detective}}
+- {macro: 'BD Tidy Up', set: {label: 'Tidy Up', strip: Beat Detective}}
+- {macro: 'BD Capture Selection', set: {label: 'Capture Selection', strip: Beat Detective}}
+- {macro: 'BD Delete Fades, Fill & CrossFade', set: {label: 'Delete Fades, Fill & Crossfade', strip: Beat Detective}}
+- {macro: 'Designate As Target Playlist', set: {glyph: playlist}}
+- {macro: 'Show Target Playlist', set: {glyph: playlist}}
+- {macro: 'Copy Selection to Target Playlist', set: {glyph: playlist}}
+- {macro: 'New .Comp Playlist', set: {glyph: playlist}}
+- {macro: 'New Playlist from .Comp to .Edit', set: {glyph: playlist}}
+- {macro: 'Rename to .C', set: {glyph: playlist}}

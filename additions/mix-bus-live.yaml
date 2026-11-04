@@ -1,0 +1,83 @@
+# Makes the Open Mix Bus Plugin keys show what's on the (PRINT) track, live.
+update buttons on: Mix Bus
+buttons:
+- macro: Open Mix Bus Plugin 1
+  set:
+    live: 1
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 2
+  set:
+    live: 2
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 3
+  set:
+    live: 3
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 4
+  set:
+    live: 4
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 5
+  set:
+    live: 5
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 6
+  set:
+    live: 6
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 7
+  set:
+    live: 7
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 8
+  set:
+    live: 8
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 9
+  set:
+    live: 9
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color
+- macro: Open Mix Bus Plugin 10
+  set:
+    live: 10
+    live track: (PRINT)
+  remove:
+  - label
+  - icon
+  - color

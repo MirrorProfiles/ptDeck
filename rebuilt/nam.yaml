@@ -1,0 +1,12 @@
+# Rebuilt for PT Deck
+# Adds Waves StudioVerse Audio Effects (mono) to insert 2 of the selected track (or the first
+# free insert if 2 is taken) and loads your 'EAS NAM' preset from Pro Tools' preset menu.
+name: NAM
+steps:
+- insert plugin: StudioVerse Audio Effects (mono)
+  slot: 2 or first free
+  category: Waves
+
+- plugin preset: EAS NAM
+  window: "Plug-in:*"
+  timeout: 8

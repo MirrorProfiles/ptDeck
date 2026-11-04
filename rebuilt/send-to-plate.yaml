@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: adds a send to the //[PLATE] bus on the selected tracks (first free send).
+# The bus name must match Pro Tools exactly.
+name: Send to PLATE
+steps:
+- send: "//[PLATE]"
+  slot: first free

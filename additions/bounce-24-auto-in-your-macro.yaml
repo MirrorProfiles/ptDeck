@@ -1,0 +1,5 @@
+# Your own copy of 'Bounce Mix at 24 Bit and Rename' still forced Offline: make it choose
+# automatically (Real-time if a hardware insert is active), like the rebuilt one.
+fix macro: bounce-mix-at-24-bit-and-rename.yaml
+replace:
+  "  offline: true": "  offline: auto"

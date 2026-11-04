@@ -1,0 +1,10 @@
+# Imported from SoundFlow
+name: RX De-Plosive
+steps:
+- audiosuite: RX 11 De-plosive
+
+- audiosuite preset: EAS Default
+
+- audiosuite render
+
+- run macro: Close First AudioSuite plugin

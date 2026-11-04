@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Add New Click Track
+steps:
+- run macro: Create Click Track

@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Open FLAC Refs Folder
+steps:
+- open: /Volumes/T7 Shield BLUE/Flac Reference Mixes

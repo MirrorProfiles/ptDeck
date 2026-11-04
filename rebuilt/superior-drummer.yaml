@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck
+# New track from your Track Preset INSTRUMENTS > SD3 (Track > New, type: Track Presets).
+name: Superior Drummer
+steps:
+- new track preset: INSTRUMENTS > SD3

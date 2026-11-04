@@ -1,0 +1,56 @@
+# Rebuilt for PT Deck: new playlist on the selected tracks, renamed Kick.01 -> Kick.Comp
+name: New .Comp Playlist
+steps:
+- press: ctrl+backslash
+
+- accept dialog                 # Pro Tools 2026 asks for the new playlist's name: keep the default
+
+- press: alt+shift+r            # Batch Track Rename
+
+- wait for window: Batch Track Rename
+
+- checkbox: Replace
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- set text: "#3"            # Trim: From Beginning
+  to: "0"
+  window: Batch Track Rename
+  typing: true
+
+- set text: "#4"            # Trim: From End
+  to: "2"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Add
+  set: on
+  window: Batch Track Rename
+
+- checkbox: "Prefix:"
+  set: off
+  window: Batch Track Rename
+
+- checkbox: "Insert:"
+  set: off
+  window: Batch Track Rename
+
+- checkbox: "Suffix:"
+  set: on
+  window: Batch Track Rename
+
+- set text: "#10"            # Add: Suffix
+  to: "Comp"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Numbering
+  set: off
+  window: Batch Track Rename
+
+- click: OK
+  window: Batch Track Rename

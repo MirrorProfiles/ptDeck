@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #610d0b).
+# Change the colour code, or use a palette number (see 'ptdeck colours').
+name: Colour Synths
+steps:
+- track color: "#610d0b"

@@ -1,0 +1,48 @@
+# Imported from SoundFlow
+name: BD Capture Selection
+steps:
+- todo: sf.ui.proTools.viewCloseFloatingWindows()
+
+- run macro: Beat Detective
+
+- click: Clip Separation
+  kind: radio button
+  window: Beat Detective
+  group: Operation
+
+- popup: '#1'
+  choose: 1/16 Note
+  kind: popup
+  window: Beat Detective
+  group: Selection
+
+- checkbox: CheckBox
+  set: off
+  window: Beat Detective
+  group: Selection
+  kind: button
+
+- click: Capture Selection
+  kind: button
+  window: Beat Detective
+  group: Selection
+
+- set text: NumericEntryText
+  to: '33'
+  kind: text field
+  window: Beat Detective
+  group: 'Detection:'
+
+- todo: 'sf.ui.proTools.windows.whoseTitle.is("Beat Detective").first.groups.whoseTitle.is("Detection:").first.textFields.whoseTitle.is("NumericEntryText").allItems[1].elementSetTextAreaValue({ value: "10", })'
+
+- click: Sub-Beats
+  kind: radio button
+  window: Beat Detective
+  group: 'Detection:'
+
+- todo: 'sf.ui.proTools.windows.whoseTitle.is("Beat Detective").first.groups.whoseTitle.is("Detection:").first.children.whoseRole.is("AXMenuButton").whoseTitle.is("Enhanced Resolution").first.popupMenuSelect({ menuPath: ["Enhanced Resolution"], })'
+
+- click: Analyze
+  kind: button
+  window: Beat Detective
+  group: 'Detection:'

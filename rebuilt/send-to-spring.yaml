@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: adds a send to the //[SPRING] bus on the selected tracks (first free send).
+# The bus name must match Pro Tools exactly.
+name: Send to SPRING
+steps:
+- send: "//[SPRING]"
+  slot: first free

@@ -1,0 +1,10 @@
+# Imported from SoundFlow
+name: RX Mouth De-Click
+steps:
+- audiosuite: RX 11 Mouth De-click
+
+- audiosuite preset: EAS Default
+
+- audiosuite render
+
+- run macro: Close First AudioSuite plugin

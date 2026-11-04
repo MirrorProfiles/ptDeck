@@ -1,0 +1,3 @@
+# Switch on PT Deck's own key style (set 'icon style: classic' in deck.yaml for the old look).
+settings:
+  icon style: designed

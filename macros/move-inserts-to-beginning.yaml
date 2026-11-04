@@ -1,0 +1,17 @@
+# Imported from SoundFlow
+name: Move Inserts To Beginning
+steps:
+- todo: 'function waitForResponsive(timeout) { var pollingInterval = 200; var waitedTime = 0; while (true) { sf.engine.checkForCancellation(); try { var val = sf.ui.proTools.mainWindow.title.invalidate().value; return true; } catch (err) { } if (timeout > 0 && waitedTime >= timeout) throw ''Timeout in waiting for Pro Tools to become responsive''; sf.wait({ intervalMs: pollingInterval }); waitedTime += pollingInterval; } }'
+
+- todo: 'function dragPlugin({ sourceIndex, destIndex }, currentInsertButtons) { let retries = 0; while (retries < 3) { let originalSourceAssignment = currentInsertButtons[sourceIndex].value.invalidate().value; let sourcePosition = currentInsertButtons[sourceIndex].position; let destPosition = currentInsertButtons[destIndex].position; sf.mouse.simulateDrag({ startPosition: { x: (sourcePosition.x + 2), y: (sourcePosition.y + 5) }, endPosition: { x: (destPosition.x + 2), y: (destPosition.y + 5) } }); waitForResponsive(10000); if (currentInsertButtons[sourceIndex].value.invalidate().value === ''unassigned'') return true; retries++; } return false; }'
+
+- todo: function getCurrentInsertName(insert) { return insert.value.invalidate().value }
+
+- todo: 'function setupScreen() { if (sf.ui.proTools.floatingWindows.exists) { sf.ui.proTools.viewCloseFloatingWindows(); } sf.ui.proTools.menuClick({ menuPath: ["View", "Edit Window Views", "Inserts F-J"], targetValue: "Enable", }); sf.ui.proTools.menuClick({ menuPath: ["View", "Edit Window Views", "Inserts A-E"], targetValue: "Enable", }); }'
+
+- todo: 'function movePlugins(targetTrack) { sf.ui.proTools.trackSelectByName({ names: [targetTrack], deselectOthers: true }); sf.ui.proTools.selectedTrack.trackScrollToView(); var currentInsertButtons = sf.ui.proTools.selectedTrack.invalidate().insertButtons; let currentInsertNames = currentInsertButtons.map(getCurrentInsertName); let pluginsToMoveCount = currentInsertNames.filter(i => i != ''unassigned'').length; if (pluginsToMoveCount === 0) return let currentlyAssignedSlots = []; for (let i = 9; i >= 0; i--) { if (currentInsertNames[i] != ''unassigned'') currentlyAssignedSlots.push(i); } if (pluginsToMoveCount != currentlyAssignedSlots.length) throw "Something''s fishy in Denmark"; var emptySlotTargetIndex = 0; for (let i = pluginsToMoveCount; i >= 0; i--) { if (currentlyAssignedSlots[i - 1] != emptySlotTargetIndex) break; currentlyAssignedSlots.pop(); emptySlotTargetIndex++; } if (currentlyAssignedSlots.length === 0) return let pluginMoves = []; for (let i = currentlyAssignedSlots.length;
+    i > 0; i--) { pluginMoves.push({ sourceIndex: currentlyAssignedSlots[i - 1], destIndex: emptySlotTargetIndex }) emptySlotTargetIndex++ } pluginMoves.forEach(m => { if (!dragPlugin(m, currentInsertButtons)) throw `Couldn''t move an insert after three attemps`; }); }'
+
+- todo: 'function main() { sf.ui.proTools.appActivateMainWindow(); sf.ui.proTools.mainWindow.invalidate(); var trackCount = sf.ui.proTools.selectedTrackCount; var trackList = sf.ui.proTools.selectedTrackNames; setupScreen(); for (var j = 0; j < trackCount; j++) { movePlugins(trackList[j]) } sf.ui.proTools.trackSelectByName({names: trackList, deselectOthers: true}) }'
+
+- todo: main()

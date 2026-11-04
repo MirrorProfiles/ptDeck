@@ -1,0 +1,22 @@
+# Imported from SoundFlow
+name: Ampete Cab 3 On
+steps:
+- midi cc: 104
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 105
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 106
+  value: 127
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 107
+  value: 0
+  channel: 1
+  port: Maschine MK3

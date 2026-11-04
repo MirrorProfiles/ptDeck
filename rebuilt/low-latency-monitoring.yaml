@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck
+name: Low Latency Monitoring
+steps:
+- menu: Options > Low Latency Monitoring

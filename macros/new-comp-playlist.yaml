@@ -1,0 +1,50 @@
+# Imported from SoundFlow
+name: New .Comp Playlist
+steps:
+- press: ctrl+backslash
+
+- wait: 200ms
+
+- press: alt+shift+r
+
+- checkbox: Replace
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- set text: '0'
+  to: '0'
+  kind: text field
+  window: Batch Track Rename
+
+- wait: 200ms
+
+- todo: 'sf.ui.proTools.windows.whoseTitle.is("Batch Track Rename").first.textFields.whoseValue.is("0").allItems[1].elementSetTextFieldWithAreaValue({ value: "2", useMouseKeyboard: true, })'
+
+- checkbox: Add
+  set: on
+  window: Batch Track Rename
+
+- checkbox: 'Prefix:'
+  set: off
+  window: Batch Track Rename
+
+- checkbox: 'Insert:'
+  set: off
+  window: Batch Track Rename
+
+- checkbox: 'Suffix:'
+  set: on
+  window: Batch Track Rename
+
+- set text: '#10'
+  to: Comp
+  kind: text field
+  window: Batch Track Rename
+
+- click: OK
+  kind: button
+  window: Batch Track Rename

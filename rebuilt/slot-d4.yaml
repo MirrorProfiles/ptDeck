@@ -1,0 +1,14 @@
+# Rebuilt for PT Deck
+# Picks reference slot D4 in MetricAB (column D, row 4) by setting the plug-in's own
+# slot number, so there's no clicking. If MetricAB wasn't open, it's closed again afterwards.
+name: Slot D4
+steps:
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: open
+
+- metric slot: D4
+
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: restore

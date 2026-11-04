@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: adds a send to the //[1/8DLY] bus on the selected tracks (first free send).
+# The bus name must match Pro Tools exactly.
+name: Send to 1/8 DELAY
+steps:
+- send: "//[1/8DLY]"
+  slot: first free

@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: removes every send from the selected tracks.
+name: Clear All Sends
+steps:
+- clear: sends
+  tracks: selected

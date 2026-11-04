@@ -1,0 +1,83 @@
+# Imported from SoundFlow
+name: BD Tom Clean Bleed
+steps:
+- audiosuite: EQ3 7-Band
+
+- audiosuite preset: EAS Bleed Filter
+
+- audiosuite render
+
+- run macro: Close First AudioSuite plugin
+
+- press: ctrl+alt+shift+tab
+
+- menu: Edit > Fades > Create...
+
+- wait: 500ms
+
+- checkbox: Create new fade ins
+  set: on
+  window: Batch Fades
+  group: Fade In Operation
+
+- checkbox: Adjust existing fade in shape & slope
+  set: off
+  window: Batch Fades
+  group: Fade In Operation
+
+- checkbox: Adjust existing fade in length
+  set: off
+  window: Batch Fades
+  group: Fade In Operation
+
+- checkbox: Create new crossfades
+  set: on
+  window: Batch Fades
+  group: Crossfade Operation
+
+- checkbox: Adjust existing crossfade shape & slope
+  set: off
+  window: Batch Fades
+  group: Crossfade Operation
+
+- checkbox: Adjust existing crossfade length
+  set: off
+  window: Batch Fades
+  group: Crossfade Operation
+
+- checkbox: Create new fade outs
+  set: on
+  window: Batch Fades
+  group: Fade Out Operation
+
+- checkbox: Adjust existing fade out shape & slope
+  set: off
+  window: Batch Fades
+  group: Fade Out Operation
+
+- checkbox: Adjust existing fade out length
+  set: off
+  window: Batch Fades
+  group: Fade Out Operation
+
+- set text: '#1'
+  to: '1'
+  kind: text field
+  window: Batch Fades
+  group: Fade In Operation
+
+- set text: '#1'
+  to: '5'
+  kind: text field
+  window: Batch Fades
+  group: Crossfade Operation
+
+- set text: '#1'
+  to: '150'
+  kind: text field
+  window: Batch Fades
+  group: Fade Out Operation
+
+- click: OK
+  kind: button
+  window: Batch Fades

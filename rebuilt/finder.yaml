@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck
+name: Finder
+steps:
+- open: /System/Library/CoreServices/Finder.app

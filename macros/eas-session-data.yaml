@@ -1,0 +1,52 @@
+# Imported from SoundFlow
+name: EAS Session Data
+steps:
+- run macro: 2025 Import Session Data
+
+- wait for window: Import Session Data
+
+- press: cmd+a
+
+- checkbox: HEAT Master Settings
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- checkbox: Tempo / Meter Map
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- checkbox: Adjust Session Start Time to Match Source Start Time
+  set: on
+  window: Import Session Data
+  group: Timecode Mapping Options
+
+- checkbox: Key Signature / Chord Map
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- checkbox: Memory Locations (Non-Markers)
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- checkbox: Window Configurations
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- checkbox: Mic PRE Settings
+  set: off
+  window: Import Session Data
+  group: Session Data
+
+- click: Do Not Import
+  kind: radio button
+  window: Import Session Data
+  group: Main Playlist Options
+
+- click: OK
+  kind: button
+  window: Import Session Data

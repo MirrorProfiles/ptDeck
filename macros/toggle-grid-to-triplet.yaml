@@ -1,0 +1,5 @@
+name: Toggle Grid to Triplet
+steps:
+- popup: Grid Value
+  choose: "*riplet*"
+  window: "Edit:*"

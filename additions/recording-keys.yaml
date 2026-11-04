@@ -1,0 +1,7 @@
+# Recording: new Cabinetron picture; Copy Track Data + Paste Inserts become one key that
+# duplicates the selected track's plug-ins (with settings) onto a new track.
+update buttons on: Recording
+buttons:
+- {macro: LIBRA, set: {icon: cabinetron.png}, remove: [label]}
+- {macro: Copy Track Data, set: {macro: Duplicate Plug-ins to New Track, label: Duplicate Plug-ins to New Track, glyph: copy}, remove: [icon]}
+- {macro: Paste Inserts, delete: true}

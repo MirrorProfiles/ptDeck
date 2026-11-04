@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Open VU Meter
+steps:
+- plugin window: 1
+  track: -PRINT MASTER
+  set: toggle

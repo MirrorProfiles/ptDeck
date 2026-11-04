@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: Setup > Playback Engine > H/W Buffer Size = 128 samples, then OK.
+name: Buffer 128
+steps:
+- activate: Pro Tools
+
+- set buffer size: 128

@@ -1,0 +1,7 @@
+name: Import IO Setup based on Sample Rate
+steps:
+- activate: Pro Tools
+
+- import io settings:
+    44100: "/Users/edwardsokolowski/Documents/PT Prefs/2025-04-08 Backup 0002/Pro Tools/IO Settings/EAS DEFAULT 2025 44kHz.pio"
+    48000: "/Users/edwardsokolowski/Documents/PT Prefs/2025-04-11 Backup 0001/Pro Tools/IO Settings/EAS DEFAULT 2025 48kHz.pio"

@@ -1,0 +1,613 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PT Deck Manager</title>
+<style>
+:root { --bg:#16181b; --panel:#1f2226; --line:#30343a; --text:#e8e8e8; --dim:#9aa0a6; --accent:#4f9cf9;
+        --ok:#3fbf6f; --warn:#e8a33d; --bad:#e5534b; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--text); font:14px/1.4 -apple-system, BlinkMacSystemFont, "Helvetica Neue", sans-serif; }
+header { display:flex; align-items:center; gap:12px; padding:12px 20px; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+header h1 { font-size:17px; margin:0 12px 0 0; }
+select, input, textarea, button { font:inherit; color:var(--text); background:#2a2e33; border:1px solid var(--line); border-radius:6px; padding:6px 9px; }
+button { cursor:pointer; }
+button:hover { border-color:#4a5058; }
+button.primary { background:var(--accent); border-color:var(--accent); color:#fff; }
+button.danger { color:#ffb3ad; }
+button#mirror.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+#deck-status { font-size:12px; opacity:.8; }
+main { display:grid; grid-template-columns:auto minmax(320px, 1fr); gap:18px; padding:18px 20px; align-items:start; }
+#inspector { max-width:460px; }
+.card { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px; }
+h2 { font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--dim); margin:0 0 10px; }
+#grid { display:grid; gap:calc(var(--k, 84px) / 12); }
+.key { width:var(--k, 84px); }
+.key { position:relative; aspect-ratio:1; border-radius:calc(var(--k, 84px) / 10); overflow:hidden; border:2px solid transparent; cursor:pointer; background:#000; }
+.key img { width:100%; height:100%; display:block; }
+.key.sel { border-color:var(--accent); }
+.key.over { border-color:#fff; border-style:dashed; }
+.key .spring { position:absolute; left:0; bottom:0; height:5px; width:0; background:var(--accent); }
+.key.springing .spring { width:100%; transition:width 1.5s linear; }
+.key.cut { opacity:.45; }
+.key > * { pointer-events:none; }   /* so dragging over a key's picture doesn't count as leaving the key */
+.badge { position:absolute; top:4px; right:4px; width:11px; height:11px; border-radius:50%; border:2px solid #000; }
+.b-missing { background:var(--bad); } .b-problem, .b-todo { background:var(--warn); }
+.hint { color:var(--dim); font-size:12.5px; margin:8px 0 0; }
+label { display:block; color:var(--dim); font-size:12px; margin:12px 0 4px; }
+#inspector input[type=text], #inspector select, #inspector textarea { width:100%; }
+.row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+.seg { display:flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+.seg button { border:0; border-radius:0; background:transparent; }
+.seg button.on { background:var(--accent); color:#fff; }
+#iconpick { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; max-height:170px; overflow:auto; margin-top:6px; }
+#iconpick img { width:100%; aspect-ratio:1; border-radius:5px; border:2px solid transparent; cursor:pointer; background:#000; }
+#iconpick img.on { border-color:var(--accent); }
+.status { font-size:12px; padding:2px 7px; border-radius:20px; white-space:nowrap; }
+.s-ok { background:#1f3b2a; color:#8fe0ad; } .s-none { background:#2a2e33; color:var(--dim); }
+button.v { padding:4px 8px; } button.v.on-w { background:#1f3b2a; border-color:#3fbf6f; } button.v.on-b { background:#3d2222; border-color:#e5534b; } .s-problem, .s-todo { background:#3d3020; color:#f0c47c; } .s-missing { background:#3d2222; color:#f2a19b; }
+table { width:100%; border-collapse:collapse; }
+td, th { text-align:left; padding:7px 6px; border-bottom:1px solid var(--line); vertical-align:top; }
+th { color:var(--dim); font-weight:500; font-size:12px; }
+td .small { color:var(--dim); font-size:12px; }
+#macros-card { grid-column:1 / -1; }
+#log { font:12px/1.5 ui-monospace, Menlo, monospace; white-space:pre-wrap; max-height:220px; overflow:auto; color:#c9c9c9; }
+#toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:#2a2e33; border:1px solid var(--line); padding:9px 16px; border-radius:8px; display:none; }
+dialog { background:var(--panel); color:var(--text); border:1px solid var(--line); border-radius:12px; width:min(820px, 94vw); padding:16px; }
+dialog::backdrop { background:rgba(0,0,0,.6); }
+#pl-list { max-height:56vh; overflow:auto; margin-top:10px; }
+#pl-list table { width:100%; border-collapse:collapse; font-size:13px; }
+#pl-list td { padding:4px 6px; border-bottom:1px solid var(--line); vertical-align:middle; }
+#pl-list input { width:100%; padding:4px 6px; }
+.pl-pic { width:44px; height:44px; border-radius:6px; background:#000; cursor:pointer; border:1px solid var(--line); display:flex; align-items:center; justify-content:center; font-size:11px; opacity:.9; }
+.pl-pic img { width:100%; height:100%; border-radius:6px; }
+#pp-grid { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; max-height:46vh; overflow:auto; margin-top:8px; }
+#pp-grid img { width:100%; aspect-ratio:1; border-radius:6px; cursor:pointer; background:#000; border:2px solid transparent; }
+#pp-grid img:hover { border-color:var(--accent); }
+#plpic.drop { outline:2px dashed var(--accent); }
+.pl-on { color:#7fdc9a; } .pl-macro { color:#f0c47c; } .pl-none { opacity:.45; }
+#iconpick.drop { outline:2px dashed var(--accent); outline-offset:3px; }
+#ed-text { width:100%; height:52vh; font:13px/1.5 ui-monospace, Menlo, monospace; }
+.problems { color:#f0c47c; font-size:12.5px; margin:8px 0; white-space:pre-wrap; }
+@media (max-width: 900px) { main { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>PT Deck Manager</h1>
+  <select id="page"></select>
+  <button id="go-home">Home</button>
+  <button id="mirror" title="Show exactly what's on the Stream Deck right now, and follow it as you change pages">Mirror deck</button>
+  <span id="deck-status"></span>
+  <span style="flex:1"></span>
+  <button id="pl-open" title="Make buttons that add a plug-in to the first free insert">Plug-in buttons…</button>
+  <button id="install">Install update…</button><input type="file" id="install-file" accept=".zip" hidden>
+  <button id="page-add">New page</button>
+  <button id="page-rename">Rename page</button>
+  <button id="page-del" class="danger">Delete page</button>
+</header>
+
+<main>
+  <section class="card">
+    <div class="row" style="justify-content:space-between"><h2 style="margin:0">Stream Deck</h2>
+      <label class="row" style="margin:0">Size <input type="range" id="ksize" min="44" max="150" value="84"></label></div>
+    <div style="height:10px"></div>
+    <div id="grid"></div>
+    <p class="hint" style="max-width:calc(var(--k, 84px) * 8.6)">Click a key to change it. Drag a key onto another to swap them.
+      To move a key into a folder, drag it and hold it over the folder until the bar fills, then drop it where you like
+      (hold over ↑ to go back out). Double-click a folder to open it. Copy / Cut / Paste: buttons on the right or Cmd+C / X / V.
+      A red dot means the macro hasn't been imported yet, orange means it needs fixing.</p>
+  </section>
+
+  <section class="card" id="inspector">
+    <h2 id="ins-title">Select a key</h2>
+    <div id="ins-body" style="display:none">
+      <div class="seg" id="kind">
+        <button data-k="macro">Macro</button><button data-k="folder">Folder</button><button data-k="none">Nothing</button>
+      </div>
+      <div id="f-macro">
+        <label>Macro</label>
+        <input type="text" id="macro" list="macro-list" placeholder="Start typing a macro name">
+        <datalist id="macro-list"></datalist>
+        <div class="row" style="margin-top:6px"><span id="macro-status"></span>
+          <button id="test-key">Test it</button><button id="edit-key">Edit steps</button></div>
+      </div>
+      <div id="f-folder" style="display:none">
+        <label>Opens page</label>
+        <input type="text" id="folder" list="page-list" placeholder="Page name (a new name makes a new page)">
+        <datalist id="page-list"></datalist>
+      </div>
+      <label>Label (leave empty for a picture-only key)</label>
+      <textarea id="label" rows="2"></textarea>
+      <label>Picture</label>
+      <div class="row"><select id="icon" style="flex:1"></select>
+        <button id="icon-up">Upload…</button><input type="file" id="icon-file" accept="image/*" hidden></div>
+      <div id="iconpick"></div>
+      <p class="hint" style="margin:4px 0 0">Newest first. To add a picture: copy an image (e.g. right-click › Copy Image on a web page) and press Cmd+V here, or drag an image file or web image onto these pictures.</p>
+      <div class="row" style="margin-top:12px">
+        <div><label style="margin-top:0">Background</label>
+          <div class="row"><input type="color" id="color"><label class="row" style="margin:0"><input type="checkbox" id="nocolor"> black</label></div></div>
+        <div><label style="margin-top:0">Text</label><input type="color" id="tcolor" value="#ffffff"></div>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="primary" id="save-key">Save key</button>
+        <button class="danger" id="clear-key">Clear key</button>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <button id="copy-key" title="Cmd+C">Copy</button>
+        <button id="cut-key" title="Cmd+X">Cut</button>
+        <button id="paste-key" title="Cmd+V">Paste</button>
+        <span id="clip-info" class="hint" style="margin:0"></span>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="macros-card">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:0">Macros</h2>
+      <div class="row">
+        <select id="m-filter">
+          <option value="untested">Untested</option><option value="failed">Failed / broken</option>
+          <option value="works">Confirmed working</option><option value="all">All</option>
+          <option value="bad">Needs fixing (file)</option><option value="unused">Not on the deck</option>
+        </select>
+        <input type="text" id="m-search" placeholder="Search">
+        <button id="m-import">Import from SoundFlow</button>
+        <button id="m-new">New macro</button>
+      </div>
+    </div>
+    <table><thead><tr><th>Name</th><th>Set up</th><th>Tested</th><th>On deck</th><th></th></tr></thead><tbody id="m-body"></tbody></table>
+  </section>
+
+  <section class="card" style="grid-column:1 / -1">
+    <h2>Recent activity (ptdeck.log)</h2>
+    <div id="log"></div>
+  </section>
+</main>
+
+<dialog id="editor">
+  <div class="row" style="justify-content:space-between"><h2 id="ed-title" style="margin:0"></h2>
+    <div class="row"><button id="ed-test">Test</button><button class="primary" id="ed-save">Save</button><button id="ed-close">Close</button></div></div>
+  <div class="problems" id="ed-problems"></div>
+  <textarea id="ed-text" spellcheck="false"></textarea>
+  <p class="hint">Each step starts with "- ". The README lists every kind of step.</p>
+</dialog>
+<dialog id="plugins">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Plug-in buttons</h2>
+    <div class="row"><button id="pl-sync">Sync plug-ins</button><button id="pl-close">Close</button></div></div>
+  <p class="hint" style="margin:6px 0">Your plug-ins from Pro Tools' plug-in folder. Check the name matches how it appears in Pro Tools' insert menu (fix it here if not), then make a button: it adds the plug-in to the selected track's first free insert. The manufacturer is the folder it's in on the insert menu (leave empty to let PT Deck search for it).</p>
+  <div class="row">
+    <input type="search" id="pl-search" placeholder="Search…" style="flex:1">
+    <select id="pl-filter"><option value="all">All plug-ins</option><option value="seen">On your tracks</option><option value="none">Without a button</option><option value="has">With a button</option><option value="nopic">Without a picture</option></select>
+    <label class="row" style="margin:0">Put it on <select id="pl-page"></select></label>
+    <label class="row" style="margin:0">Slot <select id="pl-slot"><option>first free</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option></select></label>
+  </div>
+  <div id="pl-list"><p class="hint">Click Sync plug-ins.</p></div>
+</dialog>
+
+<dialog id="plpic">
+  <div class="row" style="justify-content:space-between"><h2 id="pp-title" style="margin:0"></h2>
+    <div class="row"><button id="pp-upload">Upload…</button><input type="file" id="pp-file" accept="image/*" hidden>
+      <button id="pp-remove" class="danger">Remove picture</button><button id="pp-close">Close</button></div></div>
+  <div class="row" style="margin-top:8px"><div class="pl-pic" id="pp-now" style="width:72px;height:72px"></div>
+    <label class="row" style="margin:0"><input type="checkbox" id="pp-buttons" checked> Also put it on this plug-in's "Assign" keys</label></div>
+  <p class="hint">This picture shows on the Mixing page's live keys wherever this plug-in is loaded. Click one of your pictures below, upload one, or copy an image (e.g. right-click › Copy Image on a web page) and press Cmd+V here. You can drag an image into this window too.</p>
+  <div id="pp-grid"></div>
+</dialog>
+
+<dialog id="importer">
+  <div class="row" style="justify-content:space-between"><h2 style="margin:0">Import from SoundFlow</h2>
+    <div class="row"><button class="primary" id="imp-go">Import</button><button id="imp-close">Close</button></div></div>
+  <label>Name: use the button's macro name to link it (suggestions are buttons still waiting)</label>
+  <input type="text" id="imp-name" list="imp-names" style="width:100%"><datalist id="imp-names"></datalist>
+  <label class="row" style="margin-top:8px"><input type="checkbox" id="imp-replace"> Replace if a macro with this name exists</label>
+  <label>SoundFlow script (open it in SoundFlow, Cmd+A, Cmd+C, then paste here)</label>
+  <textarea id="imp-js" spellcheck="false" style="width:100%;height:38vh;font:12.5px/1.45 ui-monospace,Menlo,monospace"></textarea>
+  <div class="problems" id="imp-result"></div>
+</dialog>
+<div id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+let S = null, page = null, sel = null, kind = "macro", icon = "", dragFrom = null, editing = null, bust = Date.now();
+
+async function api(path, body) {
+  const r = await fetch(path, body ? {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)} : {});
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function toast(msg, ms=2600) { const t=$("#toast"); t.textContent=msg; t.style.display="block"; clearTimeout(t._h); t._h=setTimeout(()=>t.style.display="none", ms); }
+function esc(s) { return String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+const STATUS = {ok:"Ready", todo:"Needs converting", problem:"Needs fixing", missing:"Not imported", running:"Running…", error:"Failed"};
+
+async function load(keepSel=true) {
+  S = await api("/api/state"); bust = Date.now();
+  if (!page || !S.pages[page]) page = S.home;
+  $("#page").innerHTML = S.page_order.map(p => `<option ${p===page?"selected":""}>${esc(p)}</option>`).join("");
+  $("#page-list").innerHTML = S.page_order.map(p => `<option value="${esc(p)}">`).join("");
+  $("#macro-list").innerHTML = S.macros.map(m => `<option value="${esc(m.name)}">`).join("");
+  $("#icon").innerHTML = `<option value="">(no picture)</option>` + S.icons.map(i => `<option>${esc(i)}</option>`).join("");
+  $("#iconpick").innerHTML = S.icons.map(i => `<img src="/api/icon?name=${encodeURIComponent(i)}&t=${bust}" title="${esc(i)}" data-i="${esc(i)}">`).join("");
+  $("#iconpick").querySelectorAll("img").forEach(im => im.onclick = () => { icon = im.dataset.i; $("#icon").value = icon; markIcon(); });
+  drawGrid(); drawMacros(); drawLog();
+  if (keepSel && sel !== null) select(sel); else { sel = null; $("#ins-body").style.display="none"; $("#ins-title").textContent="Select a key"; }
+}
+
+let pageStack = [], springTimer = null, clip = null, hover = null;
+function goPage(p, push=true) { if (push && p !== page) pageStack.push(page); page = p; sel = null;
+  $("#page").value = p; drawGrid(); $("#ins-body").style.display="none"; $("#ins-title").textContent="Select a key"; }
+function clearSpring() { clearTimeout(springTimer); springTimer = null;
+  document.querySelectorAll(".key.springing").forEach(k => k.classList.remove("springing")); }
+function drawGrid() {
+  const g = $("#grid"); g.style.gridTemplateColumns = `repeat(${S.cols}, var(--k, 84px))`;
+  g.innerHTML = "";
+  S.pages[page].forEach((b, i) => {
+    const d = document.createElement("div"); d.className = "key" + (i===sel ? " sel" : "");
+    d.draggable = !!(b && !b.back && !b.banner);
+    const src = mirror ? `/api/deck-key.png?key=${i}&v=${mirrorV}` : `/api/key.png?page=${encodeURIComponent(page)}&key=${i}&t=${bust}`;
+    d.innerHTML = `<img src="${src}" alt="" draggable="false">` +
+      (b && b._status && b._status !== "ok" ? `<span class="badge b-${b._status}" title="${STATUS[b._status]}"></span>` : "") +
+      `<span class="spring"></span>`;
+    d.onclick = () => select(i);
+    d.ondblclick = () => { if (b && b.folder && S.pages[b.folder]) goPage(b.folder); else if (b && b.back) goPage(pageStack.pop() || S.home, false); };
+    d.ondragstart = e => { dragFrom = {page, key:i}; e.dataTransfer.effectAllowed = "move"; e.dataTransfer.setData("text/plain", "key"); };
+    d.ondragend = () => { dragFrom = null; hover = null; clearSpring(); };
+    const target = b && b.folder && S.pages[b.folder] ? b.folder : (b && b.back ? "__back__" : null);
+    const spring = () => {                       // held long enough over a folder (or ↑): open it
+      hover = null; clearSpring();
+      if (target === "__back__") goPage(pageStack.pop() || S.home, false); else goPage(target);
+    };
+    d.ondragenter = e => {
+      e.preventDefault(); d.classList.add("over");
+      if (dragFrom && target && !(dragFrom.page === page && dragFrom.key === i)) {
+        clearSpring(); void d.offsetWidth; d.classList.add("springing");
+        hover = {key: i, page, at: Date.now()};
+        springTimer = setTimeout(() => { if (hover && hover.key === i && hover.page === page) spring(); }, 1500);
+      }
+    };
+    d.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect = "move";
+      // Some browsers pause timers during a drag, but keep sending 'dragover' while you hover.
+      if (hover && hover.key === i && hover.page === page && Date.now() - hover.at >= 1500) spring(); };
+    d.ondragleave = () => { d.classList.remove("over"); d.classList.remove("springing"); clearTimeout(springTimer);
+      if (hover && hover.key === i) hover = null; };
+    d.ondrop = async e => { e.preventDefault(); d.classList.remove("over"); clearSpring();
+      if (!dragFrom || (dragFrom.page === page && dragFrom.key === i)) return;
+      if (b && b.back) { toast("Key 1 is the Back button"); return; }
+      try {
+        if (dragFrom.page === page) await api("/api/move", {page, src:dragFrom.key, dst:i});
+        else await api("/api/move-between", {src_page:dragFrom.page, src:dragFrom.key, dst_page:page, dst:i});
+        sel = i; await load();
+      } catch (err) { toast(err.message, 5000); } dragFrom = null; };
+    g.appendChild(d);
+  });
+}
+
+function buttonFields(b) { const out = {}; for (const [k, v] of Object.entries(b || {})) if (!k.startsWith("_") && k !== "key") out[k] = v; return out; }
+function copyKey(cut=false) {
+  const b = sel !== null ? S.pages[page][sel] : null;
+  if (!b || b.back || b.banner) { toast("Select a key with a button on it first"); return; }
+  clip = buttonFields(b);
+  $("#clip-info").textContent = `Copied: ${(clip.label || clip.macro || clip.folder || "button").replace(/\\n/g, " ")}`;
+  if (cut) api("/api/button", {page, key:sel, button:null}).then(() => load()).then(() => toast("Cut. Select a key and Paste.")).catch(e => toast(e.message));
+  else toast("Copied. Select a key and Paste.");
+}
+async function pasteKey() {
+  if (!clip) { toast("Nothing copied yet"); return; }
+  if (sel === null) { toast("Select a key to paste onto"); return; }
+  const b = S.pages[page][sel];
+  if (b && b.back) { toast("Key 1 is the Back button"); return; }
+  if (b && !b.banner && !confirm("Replace the button on this key?")) return;
+  try { await api("/api/button", {page, key:sel, button:clip}); await load(); toast("Pasted."); } catch (e) { toast(e.message, 5000); }
+}
+document.addEventListener("keydown", e => {
+  if (!(e.metaKey || e.ctrlKey) || $("#editor").open || $("#importer").open || $("#plpic").open) return;
+  const t = e.target.tagName; if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
+  const k = e.key.toLowerCase();
+  if (k === "c") { e.preventDefault(); copyKey(false); }
+  else if (k === "x") { e.preventDefault(); copyKey(true); }
+  else if (k === "v") { pasteDone = false; setTimeout(() => { if (!pasteDone) pasteKey(); }, 150); }
+});
+// Cmd+V: a picture on the clipboard becomes a new icon; otherwise it pastes the copied key.
+let pasteDone = false;
+document.addEventListener("paste", async e => {
+  if ($("#plpic").open) {                // pasting a picture for a plug-in
+    const items = [...(e.clipboardData ? e.clipboardData.items : [])];
+    const img = items.find(i => i.kind === "file" && i.type.startsWith("image/"));
+    const html = e.clipboardData ? e.clipboardData.getData("text/html") : "";
+    const m = html && html.match(/<img[^>]+src="([^"]+)"/i);
+    e.preventDefault(); pasteDone = true;
+    if (img) return setPluginPicture({data: await asDataURL(img.getAsFile())});
+    if (m) { try { const r = await api("/api/icon-url", {url: m[1].replace(/&amp;/g, "&"), name: picFor.name}); return setPluginPicture({icon: r.name}); } catch (err) { return toast(err.message, 6000); } }
+    return toast("Copy an image first (e.g. right-click › Copy Image)");
+  }
+  if ($("#editor").open || $("#importer").open) return;
+  const t = e.target.tagName; if (t === "INPUT" || t === "TEXTAREA" || t === "SELECT") return;
+  pasteDone = true;
+  const items = [...(e.clipboardData ? e.clipboardData.items : [])];
+  const img = items.find(i => i.kind === "file" && i.type.startsWith("image/"));
+  if (img) { e.preventDefault(); return addPicture(await asDataURL(img.getAsFile()), "pasted"); }
+  const html = e.clipboardData ? e.clipboardData.getData("text/html") : "";
+  const m = html && html.match(/<img[^>]+src="([^"]+)"/i);
+  if (m) { e.preventDefault(); return addPicture(m[1].replace(/&amp;/g, "&"), "pasted"); }
+  pasteKey();
+});
+function asDataURL(f) { return new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); }); }
+async function addPicture(src, suggested) {
+  const name = prompt("Name for this picture", suggested || "picture"); if (name === null) return;
+  try {
+    const r = src.startsWith("data:") ? await api("/api/icon", {name, data:src}) : await api("/api/icon-url", {url:src, name});
+    await load(); icon = r.name; $("#icon").value = icon; markIcon();
+    toast(sel !== null ? "Picture added and picked for this key. Click Save key to use it." : "Picture added to your pictures.", 5000);
+  } catch (err) { toast(err.message, 6000); }
+}
+// Drag an image file, or an image from another browser tab, onto the pictures.
+["dragover", "dragenter"].forEach(ev => $("#iconpick").addEventListener(ev, e => {
+  if (dragFrom) return; e.preventDefault(); $("#iconpick").classList.add("drop"); }));
+$("#iconpick").addEventListener("dragleave", () => $("#iconpick").classList.remove("drop"));
+$("#iconpick").addEventListener("drop", async e => {
+  e.preventDefault(); $("#iconpick").classList.remove("drop");
+  const f = [...e.dataTransfer.files].find(f => f.type.startsWith("image/"));
+  if (f) return addPicture(await asDataURL(f), f.name.replace(/\.[^.]+$/, ""));
+  const html = e.dataTransfer.getData("text/html"); const m = html && html.match(/<img[^>]+src="([^"]+)"/i);
+  const url = (m && m[1].replace(/&amp;/g, "&")) || e.dataTransfer.getData("text/uri-list").split("\n")[0];
+  if (url) addPicture(url.trim(), "picture"); else toast("That isn't a picture");
+});
+
+function setKind(k) { kind = k; document.querySelectorAll("#kind button").forEach(b => b.classList.toggle("on", b.dataset.k===k));
+  $("#f-macro").style.display = k==="macro" ? "" : "none"; $("#f-folder").style.display = k==="folder" ? "" : "none"; }
+function markIcon() { document.querySelectorAll("#iconpick img").forEach(im => im.classList.toggle("on", im.dataset.i===icon)); }
+function macroStatus(name) {
+  if (!name) return "";
+  const m = S.macros.find(m => m.name.toLowerCase()===name.toLowerCase() || m.file.replace(/\.ya?ml$/,"").toLowerCase()===name.toLowerCase());
+  const run = S.runs[m ? m.name : name];
+  if (run) return `<span class="status s-${run.status==="ok"?"ok":run.status==="error"?"missing":"todo"}">${STATUS[run.status]}${run.status==="error" ? ": "+esc(run.message) : ""}</span>`;
+  const st = m ? m.status : "missing";
+  return `<span class="status s-${st}" title="${esc(m ? m.problems.join("\n") : "Import it from SoundFlow with this exact name")}">${STATUS[st]}</span>`;
+}
+
+function select(i) {
+  sel = i; drawGrid();
+  const b = S.pages[page][i];
+  $("#ins-title").textContent = `${page} · key ${i+1}`;
+  if (b && b.back) { $("#ins-body").style.display="none"; $("#ins-title").textContent += " (Back button)"; return; }
+  $("#ins-body").style.display = "";
+  setKind(b && b.folder ? "folder" : b && b.macro ? "macro" : (b ? "none" : "macro"));
+  $("#macro").value = b?.macro || ""; $("#folder").value = b?.folder || "";
+  $("#label").value = (b?.label || "").replace(/\\n/g, "\n");
+  icon = b?.icon || ""; $("#icon").value = icon; markIcon();
+  $("#nocolor").checked = !b?.color; $("#color").value = /^#[0-9a-f]{6}$/i.test(b?.color||"") ? b.color : "#333333";
+  $("#tcolor").value = /^#[0-9a-f]{6}$/i.test(b?.["text color"]||"") ? b["text color"] : "#ffffff";
+  $("#macro-status").innerHTML = macroStatus(b?.macro);
+}
+
+async function saveKey() {
+  const b = {};
+  if (kind === "macro" && $("#macro").value.trim()) b.macro = $("#macro").value.trim();
+  if (kind === "folder" && $("#folder").value.trim()) b.folder = $("#folder").value.trim();
+  const label = $("#label").value.trim(); if (label) b.label = label.replace(/\n/g, "\\n");
+  if (icon) b.icon = icon;
+  if (!$("#nocolor").checked) b.color = $("#color").value;
+  if ($("#tcolor").value.toLowerCase() !== "#ffffff") b["text color"] = $("#tcolor").value;
+  try { await api("/api/button", {page, key:sel, button: Object.keys(b).length ? b : null}); toast("Saved. The deck updates in a second."); await load(); }
+  catch (e) { toast(e.message, 5000); }
+}
+
+function tested(m) {
+  const r = m.result || {};
+  if (r.verdict === "works") return {key:"works", html:`<span class="status s-ok">✓ Works</span><div class="small">${esc(r.verdict_at||"")}</div>`};
+  if (r.verdict === "broken") return {key:"failed", html:`<span class="status s-missing">✗ Broken</span><div class="small">${esc(r.message||"")}</div>`};
+  if (r.last_result === "error") return {key:"failed", html:`<span class="status s-missing">Failed ${esc(r.last_run)}</span><div class="small">${esc(r.message)}</div>`};
+  if (r.last_result === "ok") return {key:"ran", html:`<span class="status s-todo">Ran OK ${esc(r.last_run)}</span><div class="small">Did it do the right thing? Mark it ✓ or ✗</div>`};
+  return {key:"none", html:`<span class="status s-none">Untested</span>`};
+}
+function drawMacros() {
+  const f = $("#m-filter").value, q = $("#m-search").value.toLowerCase();
+  const keep = m => { const t = tested(m).key;
+    return f==="all" || (f==="untested" && (t==="none" || t==="ran")) || (f==="failed" && t==="failed") ||
+           (f==="works" && t==="works") || (f==="bad" && m.status!=="ok") || (f==="unused" && !m.on_deck); };
+  const counts = {untested:0, failed:0, works:0};
+  S.macros.forEach(m => { const t = tested(m).key; if (t==="none"||t==="ran") counts.untested++; else if (t in counts) counts[t]++; });
+  [...$("#m-filter").options].forEach(o => { const base = o.textContent.replace(/ \(\d+\)$/, ""); o.textContent = o.value in counts ? `${base} (${counts[o.value]})` : base; });
+  const rows = S.macros.filter(m => keep(m) && m.name.toLowerCase().includes(q));
+  $("#m-body").innerHTML = rows.map(m => {
+    const run = S.runs[m.name];
+    const st = `<span class="status s-${m.status}">${STATUS[m.status]}</span>` + (m.problems.length ? `<div class="small">${esc(m.problems[0])}${m.problems.length>1 ? ` (+${m.problems.length-1} more)` : ""}</div>` : "");
+    const t = run && run.status==="running" ? `<span class="status s-todo">Running…</span>` : tested(m).html;
+    const v = (m.result||{}).verdict;
+    return `<tr><td>${esc(m.name)}<div class="small">${esc(m.file)} · ${m.steps} steps</div></td><td>${st}</td><td>${t}</td><td>${m.on_deck ? "Yes" : "—"}</td>
+      <td style="white-space:nowrap"><button data-edit="${esc(m.name)}">Edit</button> <button data-test="${esc(m.name)}">Test</button>
+      <button class="v ${v==="works"?"on-w":""}" data-v="works" data-n="${esc(m.name)}" title="It works">✓</button><button class="v ${v==="broken"?"on-b":""}" data-v="broken" data-n="${esc(m.name)}" title="It doesn't work">✗</button></td></tr>`;
+  }).join("") || `<tr><td colspan="5" class="small">Nothing here.</td></tr>`;
+  $("#m-body").querySelectorAll("[data-edit]").forEach(b => b.onclick = () => openEditor(b.dataset.edit));
+  $("#m-body").querySelectorAll("[data-test]").forEach(b => b.onclick = () => testMacro(b.dataset.test));
+  $("#m-body").querySelectorAll("[data-v]").forEach(b => b.onclick = async () => {
+    const m = S.macros.find(x => x.name === b.dataset.n); const same = (m.result||{}).verdict === b.dataset.v;
+    try { await api("/api/verdict", {name:b.dataset.n, verdict: same ? null : b.dataset.v}); S = await api("/api/state"); drawMacros(); } catch (e) { toast(e.message); } });
+}
+function drawLog() { const l = $("#log"); l.textContent = S.log.join("\n") || "Nothing yet."; l.scrollTop = l.scrollHeight; }
+
+async function testMacro(name) {
+  if (!name) return;
+  try { await api("/api/run", {name}); toast(`Testing "${name}": Pro Tools comes to the front in a moment.`); poll(); }
+  catch (e) { toast(e.message, 5000); }
+}
+let polling = null;
+function poll() { clearInterval(polling); let n = 0;
+  polling = setInterval(async () => { S = await api("/api/state"); drawMacros(); drawLog(); if (sel!==null) $("#macro-status").innerHTML = macroStatus(S.pages[page][sel]?.macro);
+    if (++n > 60 || !Object.values(S.runs).some(r => r.status==="running")) clearInterval(polling); }, 1000); }
+
+async function openEditor(name) {
+  try { const m = await api("/api/macro?name=" + encodeURIComponent(name)); editing = m.file;
+    $("#ed-title").textContent = name; $("#ed-text").value = m.text;
+    const info = S.macros.find(x => x.file === m.file); $("#ed-problems").textContent = info && info.problems.length ? info.problems.join("\n") : "";
+    $("#editor").showModal(); } catch (e) { toast(e.message, 5000); }
+}
+$("#ed-save").onclick = async () => { try { const r = await api("/api/macro", {file:editing, text:$("#ed-text").value});
+  $("#ed-problems").textContent = r.problems.length ? r.problems.join("\n") : "Saved. No problems found."; await load(); } catch (e) { $("#ed-problems").textContent = e.message; } };
+$("#ed-test").onclick = () => testMacro($("#ed-title").textContent);
+$("#ed-close").onclick = () => $("#editor").close();
+
+$("#page").onchange = e => { pageStack = []; page = e.target.value; sel = null; load(false); };
+$("#go-home").onclick = () => { pageStack = []; page = S.home; sel = null; load(false); };
+$("#page-add").onclick = async () => { const n = prompt("Name for the new page:"); if (!n) return;
+  try { await api("/api/page", {action:"add", name:n}); page = n; sel=null; await load(false); toast("Page added. Add a folder key somewhere that opens it."); } catch (e) { toast(e.message, 5000); } };
+$("#page-rename").onclick = async () => { const n = prompt("New name for this page:", page); if (!n || n===page) return;
+  try { await api("/api/page", {action:"rename", name:page, new:n}); page = n; await load(false); } catch (e) { toast(e.message, 5000); } };
+$("#page-del").onclick = async () => { if (!confirm(`Delete the page "${page}" and any keys that open it?`)) return;
+  try { await api("/api/page", {action:"delete", name:page}); page = S.home; sel=null; await load(false); } catch (e) { toast(e.message, 5000); } };
+document.querySelectorAll("#kind button").forEach(b => b.onclick = () => setKind(b.dataset.k));
+$("#macro").oninput = () => $("#macro-status").innerHTML = macroStatus($("#macro").value.trim());
+$("#icon").onchange = () => { icon = $("#icon").value; markIcon(); };
+$("#icon-up").onclick = () => $("#icon-file").click();
+$("#icon-file").onchange = async e => { const f = e.target.files[0]; if (!f) return;
+  const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+  try { const r = await api("/api/icon", {name:f.name, data}); await load(); icon = r.name; $("#icon").value = icon; markIcon(); toast("Picture added. Click Save key to use it."); } catch (err) { toast(err.message, 5000); } };
+$("#save-key").onclick = saveKey;
+$("#copy-key").onclick = () => copyKey(false);
+$("#cut-key").onclick = () => copyKey(true);
+$("#paste-key").onclick = pasteKey;
+$("#clear-key").onclick = async () => { if (!confirm("Clear this key?")) return; try { await api("/api/button", {page, key:sel, button:null}); await load(); } catch (e) { toast(e.message, 5000); } };
+$("#test-key").onclick = () => testMacro($("#macro").value.trim());
+$("#edit-key").onclick = () => { const n = $("#macro").value.trim(); if (n) openEditor(n); };
+$("#m-filter").onchange = drawMacros; $("#m-search").oninput = drawMacros;
+$("#install").onclick = () => $("#install-file").click();
+$("#install-file").onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(f); });
+  try {
+    const r = await api("/api/install", {data});
+    toast(`Installed ${r.files} files${r.pages.length ? "; added " + r.pages.join(", ") : ""}. Restarting PT Deck…`, 8000);
+    setTimeout(async function wait() {
+      try { await api("/api/state"); location.reload(); } catch { setTimeout(wait, 1000); }
+    }, 3000);
+  } catch (err) { toast(err.message, 6000); }
+  e.target.value = "";
+};
+$("#m-import").onclick = () => {
+  const waiting = new Set();
+  Object.values(S.pages).forEach(pg => pg.forEach(b => { if (b && b.macro && b._status === "missing") waiting.add(b.macro); }));
+  $("#imp-names").innerHTML = [...waiting].map(n => `<option value="${esc(n)}">`).join("");
+  $("#imp-result").textContent = ""; $("#importer").showModal(); };
+$("#imp-close").onclick = () => $("#importer").close();
+$("#imp-go").onclick = async () => {
+  try {
+    const r = await api("/api/import", {name:$("#imp-name").value, js:$("#imp-js").value, replace:$("#imp-replace").checked});
+    let msg = `Saved "${$("#imp-name").value}" (${r.steps} steps).`;
+    if (r.todos) msg += `\n${r.todos} step(s) couldn't be converted automatically. Send the script to Claude to rebuild it.`;
+    else msg += "\nEverything converted. Test it from the Macros list.";
+    if (r.calls.length) msg += `\nIt calls other SoundFlow command(s) you'll need too: ${r.calls.join(", ")}`;
+    $("#imp-result").textContent = msg; $("#imp-js").value = ""; await load();
+  } catch (e) { $("#imp-result").textContent = e.message; } };
+$("#m-new").onclick = async () => { const n = prompt("Name for the new macro:"); if (!n) return;
+  try { await api("/api/macro/new", {name:n}); await load(); openEditor(n); } catch (e) { toast(e.message, 5000); } };
+// ----- Plug-in buttons -----
+let PL = null;
+$("#pl-open").onclick = () => {
+  $("#pl-page").innerHTML = S.page_order.map(p => `<option ${p===page?"selected":""}>${esc(p)}</option>`).join("");
+  $("#plugins").showModal(); if (!PL) syncPlugins(); };
+$("#pl-close").onclick = () => $("#plugins").close();
+$("#pl-sync").onclick = syncPlugins;
+$("#pl-search").oninput = drawPlugins; $("#pl-filter").onchange = drawPlugins;
+async function syncPlugins() {
+  $("#pl-list").innerHTML = `<p class="hint">Reading your plug-ins…</p>`;
+  try { PL = await api("/api/plugins"); drawPlugins(); }
+  catch (e) { $("#pl-list").innerHTML = `<p class="hint">${esc(e.message)}</p>`; }
+}
+function drawPlugins() {
+  if (!PL) return;
+  if (!PL.found) { $("#pl-list").innerHTML = `<p class="hint">No plug-ins found in ${esc(PL.folder)}.</p>`; return; }
+  const q = $("#pl-search").value.trim().toLowerCase(), f = $("#pl-filter").value;
+  const rows = PL.plugins.filter(p => (!q || (p.name + " " + p.file + " " + p.vendor).toLowerCase().includes(q))
+    && (f === "all" || (f === "seen" && p.seen) || (f === "nopic" && !p.icon)
+        || ((f === "has" || f === "none") && (f === "has") === (p.macros.length > 0))));
+  $("#pl-list").innerHTML = `<table><tr><th>Picture</th><th>Plug-in name</th><th>Manufacturer</th><th>Button</th><th></th></tr>` +
+    rows.slice(0, 400).map((p, i) => `<tr data-i="${PL.plugins.indexOf(p)}">
+      <td><div class="pl-pic" title="Choose a picture">${p.icon ? `<img src="/api/icon?name=${encodeURIComponent(p.icon)}&t=${bust}">` : "＋"}</div></td>
+      <td><input class="pl-name" value="${esc(p.name)}" title="${esc(p.file || "seen on your tracks")}">${p.seen ? `<div class="hint" style="margin:0">on your tracks</div>` : ""}</td>
+      <td><input class="pl-vendor" value="${esc(p.vendor)}" placeholder="(search for it)"></td>
+      <td class="${p.on_deck ? "pl-on" : p.macros.length ? "pl-macro" : "pl-none"}">${p.on_deck ? "✓ on the deck" : p.macros.length ? "macro, not on deck" : "—"}
+        ${p.macros.length ? `<div class="hint" style="margin:0">${esc(p.macros.join(", "))}</div>` : ""}</td>
+      <td><button class="pl-make">Make button</button></td></tr>`).join("") + `</table>` +
+    (rows.length > 400 ? `<p class="hint">Showing 400 of ${rows.length}: search to narrow it down.</p>` : "");
+  $("#pl-list").querySelectorAll(".pl-pic").forEach(b => b.onclick = () => {
+    const tr = b.closest("tr"); openPicPicker(PL.plugins[+tr.dataset.i], tr.querySelector(".pl-name").value.trim());
+  });
+  $("#pl-list").querySelectorAll(".pl-make").forEach(b => b.onclick = async () => {
+    const tr = b.closest("tr"), p = PL.plugins[+tr.dataset.i];
+    const name = tr.querySelector(".pl-name").value.trim(), vendor = tr.querySelector(".pl-vendor").value.trim();
+    try {
+      const r = await api("/api/plugin-button", {plugin:name, category:vendor, slot:$("#pl-slot").value, page:$("#pl-page").value});
+      p.macros = [...p.macros, r.macro]; p.on_deck = r.key !== null; drawPlugins(); await load();
+      toast(`Made "${r.macro}"` + (r.key !== null ? ` on ${$("#pl-page").value}, key ${r.key + 1}.` : "."), 5000);
+    } catch (e) { toast(e.message, 6000); }
+  });
+}
+
+// ----- A plug-in's own picture -----
+let picFor = null;
+function openPicPicker(p, name) {
+  picFor = {p, name: name || p.name};
+  $("#pp-title").textContent = picFor.name;
+  $("#pp-now").innerHTML = p.icon ? `<img src="/api/icon?name=${encodeURIComponent(p.icon)}&t=${Date.now()}">` : "none";
+  $("#pp-remove").style.display = p.icon ? "" : "none";
+  $("#pp-grid").innerHTML = S.icons.map(i => `<img src="/api/icon?name=${encodeURIComponent(i)}&t=${bust}" title="${esc(i)}" data-i="${esc(i)}">`).join("");
+  $("#pp-grid").querySelectorAll("img").forEach(im => im.onclick = () => setPluginPicture({icon: im.dataset.i}));
+  $("#plpic").showModal();
+}
+async function setPluginPicture(what) {
+  try {
+    const r = await api("/api/plugin-picture", {plugin: picFor.name, on_buttons: $("#pp-buttons").checked, ...what});
+    picFor.p.icon = r.icon; bust = Date.now(); $("#plpic").close(); drawPlugins(); await load();
+    toast(r.icon ? `Picture set for ${picFor.name}` + (r.buttons ? ` (and ${r.buttons} key${r.buttons > 1 ? "s" : ""})` : "") : "Picture removed", 5000);
+  } catch (e) { toast(e.message, 6000); }
+}
+$("#pp-close").onclick = () => $("#plpic").close();
+$("#pp-remove").onclick = () => setPluginPicture({remove: true});
+$("#pp-upload").onclick = () => $("#pp-file").click();
+$("#pp-file").onchange = async e => { const f = e.target.files[0]; if (f) setPluginPicture({data: await asDataURL(f)}); e.target.value = ""; };
+["dragover", "dragenter"].forEach(ev => $("#plpic").addEventListener(ev, e => { e.preventDefault(); $("#plpic").classList.add("drop"); }));
+$("#plpic").addEventListener("dragleave", () => $("#plpic").classList.remove("drop"));
+$("#plpic").addEventListener("drop", async e => {
+  e.preventDefault(); $("#plpic").classList.remove("drop");
+  const f = [...e.dataTransfer.files].find(f => f.type.startsWith("image/"));
+  if (f) return setPluginPicture({data: await asDataURL(f)});
+  const html = e.dataTransfer.getData("text/html"); const m = html && html.match(/<img[^>]+src="([^"]+)"/i);
+  const url = (m && m[1].replace(/&amp;/g, "&")) || e.dataTransfer.getData("text/uri-list").split("\n")[0];
+  if (url) { try { const r = await api("/api/icon-url", {url: url.trim(), name: picFor.name}); setPluginPicture({icon: r.name}); } catch (err) { toast(err.message, 6000); } }
+});
+
+// ----- Mirror deck: follow the page the Stream Deck shows, with keys exactly as drawn there -----
+let mirror = false, mirrorV = -1;
+try { mirror = localStorage.getItem("mirror") === "1"; } catch {}
+function setMirror(on) {
+  mirror = on; mirrorV = -1;
+  try { localStorage.setItem("mirror", on ? "1" : "0"); } catch {}
+  $("#mirror").classList.toggle("on", on);
+  if (!on) { $("#deck-status").textContent = ""; if (S) drawGrid(); }
+}
+$("#mirror").onclick = () => setMirror(!mirror);
+$("#mirror").classList.toggle("on", mirror);
+setInterval(async () => {
+  if (!mirror || !S || dragFrom) return;
+  try {
+    const d = await api("/api/deck");
+    if (!d.running) { $("#deck-status").textContent = "Deck isn't running from this Manager"; return; }
+    $("#deck-status").textContent = d.connected ? "● Deck connected" : "○ Waiting for the Stream Deck";
+    if (d.page !== page && S.pages[d.page]) { mirrorV = d.version; goPage(d.page, false); return; }
+    if (d.version !== mirrorV) {
+      mirrorV = d.version;
+      document.querySelectorAll("#grid .key img").forEach((im, i) => { im.src = `/api/deck-key.png?key=${i}&v=${mirrorV}`; });
+    }
+  } catch { $("#deck-status").textContent = "Can't reach PT Deck"; }
+}, 600);
+
+setInterval(async () => { if (!$("#editor").open) { try { S = await api("/api/state"); drawLog(); } catch {} } }, 5000);
+function setSize(v) { document.documentElement.style.setProperty("--k", v + "px"); $("#ksize").value = v; try { localStorage.setItem("ptdeck-ksize", v); } catch {} }
+$("#ksize").oninput = e => setSize(e.target.value);
+try { setSize(localStorage.getItem("ptdeck-ksize") || 84); } catch { setSize(84); }
+load(false).catch(e => document.body.innerHTML = `<p style="padding:20px">Couldn't load: ${esc(e.message)}</p>`);
+</script>
+</body>
+</html>

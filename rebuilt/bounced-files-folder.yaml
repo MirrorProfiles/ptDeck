@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck: opens the current session's Bounced Files folder in Finder.
+name: Bounced Files Folder
+steps:
+- open session folder: Bounced Files

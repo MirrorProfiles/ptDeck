@@ -1,0 +1,24 @@
+# Metric A/B: all 16 reference slots as a 4x4 grid on the right (A-D across, 1-4 down).
+# Each key shows that slot's song name (read from MetricAB) and the selected one lights up.
+page: Metric A/B
+version: 3
+buttons:
+- {key: 2, label: Open Metric A/B, macro: open-metric-a-b}
+- {key: 3, metric ab: true, macro: toggle-metric-a-b}
+- {key: 9, label: Open FLAC Refs Folder, macro: open-flac-refs-folder}
+- {key: 5, metric: A1, macro: Slot A1}
+- {key: 6, metric: B1, macro: Slot B1}
+- {key: 7, metric: C1, macro: Slot C1}
+- {key: 8, metric: D1, macro: Slot D1}
+- {key: 13, metric: A2, macro: Slot A2}
+- {key: 14, metric: B2, macro: Slot B2}
+- {key: 15, metric: C2, macro: Slot C2}
+- {key: 16, metric: D2, macro: Slot D2}
+- {key: 21, metric: A3, macro: Slot A3}
+- {key: 22, metric: B3, macro: Slot B3}
+- {key: 23, metric: C3, macro: Slot C3}
+- {key: 24, metric: D3, macro: Slot D3}
+- {key: 29, metric: A4, macro: Slot A4}
+- {key: 30, metric: B4, macro: Slot B4}
+- {key: 31, metric: C4, macro: Slot C4}
+- {key: 32, metric: D4, macro: Slot D4}

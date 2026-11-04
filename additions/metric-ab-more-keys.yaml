@@ -1,0 +1,6 @@
+# Metric A/B: Sides and Loudness Match (light up when on) and Match All, under the A/B key.
+add to page: Metric A/B
+buttons:
+- {key: 10, metric toggle: sides, macro: Metric Sides}
+- {key: 11, metric toggle: match, macro: Metric Loudness Match}
+- {key: 12, label: "MATCH\nALL", macro: Metric Match All References, glyph: speaker, color: '#1d2a38', text color: '#e0a274'}

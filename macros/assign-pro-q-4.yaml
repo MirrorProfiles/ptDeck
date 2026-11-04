@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Assign Pro-Q 4
+steps:
+- insert plugin: FabFilter Pro-Q 4
+  slot: first free
+  category: FabFilter

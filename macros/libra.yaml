@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: LIBRA
+steps:
+- insert plugin: Cabinetron
+  slot: 10
+  category: TBTECH

@@ -1,0 +1,4 @@
+# Adds the real-time bounce next to the offline one (only if key 30 is empty).
+add to page: Bounce Mix
+buttons:
+- {key: 30, label: "Bounce Mix @24bit Real-time and Rename", macro: Bounce Mix at 24 Bit and Rename (Real-time), color: "#3a2a10"}

@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Assign RenAxx
+steps:
+- insert plugin: Renaissance Axx
+  slot: first free
+  category: Waves Audio

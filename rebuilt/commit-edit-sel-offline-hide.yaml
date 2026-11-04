@@ -1,0 +1,39 @@
+# Rebuilt for PT Deck: Track > Commit with
+#   Commit: Edit Selection (Edit Selection), Offline on, Source Tracks: Hide and Make Inactive
+#   Consolidate Clips on, render Volume and Mute + Pan automation.
+name: Commit - Edit Sel - Offline - Hide
+steps:
+- menu: Track > Commit...
+
+- wait for window: Commit Tracks
+
+- popup: "#1"                  # Commit: Edit Selection
+  choose: Edit Selection
+  window: Commit Tracks
+
+- checkbox: Consolidate Clips
+  set: on
+  window: Commit Tracks
+
+- checkbox: Volume and Mute
+  set: on
+  window: Commit Tracks
+
+- checkbox: Pan
+  set: on
+  window: Commit Tracks
+
+- checkbox: Offline
+  set: on
+  window: Commit Tracks
+
+- popup: "#2"                  # Source Tracks: Hide and Make Inactive
+  choose: Hide and Make Inactive
+  window: Commit Tracks
+
+- click: OK
+  window: Commit Tracks
+
+- wait for window: Commit Tracks
+  gone: true
+  timeout: 120

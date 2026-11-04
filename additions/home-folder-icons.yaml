@@ -1,0 +1,8 @@
+# Home: the main folders get pictures in the new style (old ones are in icons/classic).
+update buttons on: Home
+buttons:
+- {folder: Mix Prep, set: {icon: folder-mix-prep.png, outline: none}}
+- {folder: Mix Sends, set: {icon: folder-mix-sends.png, outline: none}}
+- {folder: Mix Bus, set: {icon: folder-mix-bus.png, outline: none}}
+- {folder: Bounce Mix, set: {icon: folder-bounce-mix.png, outline: none}}
+- {folder: Ampete, set: {icon: folder-ampete.png, outline: none}}

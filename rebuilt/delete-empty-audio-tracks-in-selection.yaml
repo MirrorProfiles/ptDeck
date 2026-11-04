@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck (uses the Pro Tools Scripting SDK)
+# Deletes selected audio tracks that have no clips on them.
+name: Delete Empty Audio Tracks in Selection
+steps:
+- delete empty audio tracks:
+  tracks: selected

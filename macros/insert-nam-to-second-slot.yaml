@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Insert NAM to Second Slot
+steps:
+- insert plugin: StudioVerse Audio Effects
+  slot: 2
+  category: Waves

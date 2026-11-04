@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Open Drum Bus EQ
+steps:
+- plugin window: 6
+  track: '[ALL DRUMS]'
+  set: toggle

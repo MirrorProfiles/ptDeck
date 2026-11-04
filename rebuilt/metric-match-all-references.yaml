@@ -1,0 +1,14 @@
+# Rebuilt for PT Deck
+# MetricAB's two-speaker button: matches the loudness of ALL references to your mix.
+# Opens MetricAB on -OUT MASTER if needed (and closes it again afterwards).
+name: Metric Match All References
+steps:
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: open
+
+- metric button: match all
+
+- plugin window: ADPTR MetricAB
+  track: "-OUT MASTER"
+  set: restore

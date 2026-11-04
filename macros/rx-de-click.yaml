@@ -1,0 +1,10 @@
+# Imported from SoundFlow
+name: RX De-Click
+steps:
+- audiosuite: RX 11 De-click
+
+- audiosuite preset: EAS De Click
+
+- audiosuite render
+
+- run macro: Close First AudioSuite plugin

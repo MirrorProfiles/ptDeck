@@ -1,0 +1,9 @@
+# Imported from SoundFlow
+name: Slot A1
+steps:
+- click at:
+  - 350
+  - 630
+  element: FXTDMEditView
+  kind: group
+  window: 'Plug-in: ADPTR MetricAB'

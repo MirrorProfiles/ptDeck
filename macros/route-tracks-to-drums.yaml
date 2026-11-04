@@ -1,0 +1,16 @@
+# Imported from SoundFlow
+name: Route Tracks to [DRUMS]
+steps:
+- output: Stereo > bus > [DRUMS]
+
+- send: Stereo > bus > //[PARA DRUMS]
+  slot: 1
+  all selected: true
+
+- send: Stereo > bus > //[1176CRUSH]
+  slot: 2
+  all selected: true
+
+- send: Stereo > bus > //[PARA DIST]
+  slot: 3
+  all selected: true

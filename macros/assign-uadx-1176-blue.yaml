@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Assign UADx 1176 Blue
+steps:
+- insert plugin: UADx 1176 Rev A Compressor
+  slot: first free
+  category: Universal Audio (UADx)

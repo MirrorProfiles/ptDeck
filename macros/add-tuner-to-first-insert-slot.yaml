@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Add Tuner to First Insert Slot
+steps:
+- insert plugin: LockOn
+  slot: first free
+  category: SubMission Audio

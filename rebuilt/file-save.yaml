@@ -1,0 +1,4 @@
+# Rebuilt for PT Deck (uses the Pro Tools Scripting SDK)
+name: File Save
+steps:
+- pro tools: SaveSession

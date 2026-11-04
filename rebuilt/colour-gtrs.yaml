@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck: colours the selected tracks (closest Pro Tools colour to #004011).
+# Change the colour code, or use a palette number (see 'ptdeck colours').
+name: Colour Gtrs
+steps:
+- track color: "#004011"

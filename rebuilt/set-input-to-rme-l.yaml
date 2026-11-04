@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck: sets the selected tracks' input to the RME's S/PDIF L side.
+# Mono tracks: 'SPDIF L/R.L (Mono)'. Stereo tracks: 'SPDIF L/R (Stereo)'.
+name: Set Input to RME L
+steps:
+- input: SPDIF L/R.L
+  stereo: SPDIF L/R

@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.pyc
+previews/
+ptdeck.log
+*.log
+.DS_Store

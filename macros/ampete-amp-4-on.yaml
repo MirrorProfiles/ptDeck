@@ -1,0 +1,27 @@
+# Imported from SoundFlow
+name: Ampete Amp 4 on
+steps:
+- midi cc: 80
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 81
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 82
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 83
+  value: 0
+  channel: 1
+  port: Maschine MK3
+
+- midi cc: 83
+  value: 127
+  channel: 1
+  port: Maschine MK3

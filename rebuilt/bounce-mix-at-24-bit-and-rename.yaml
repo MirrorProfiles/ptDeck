@@ -1,0 +1,17 @@
+# Rebuilt for PT Deck: opens Bounce Mix and fills it in, then leaves it open for you to
+# check and click Bounce:
+#   File Name   e.g. 261031_My Song_EASMIX_48_24b.wav
+#   Mix Source  Built-in Output 1-2 (Stereo) -> Analog 1-2
+#   Bit Depth   24 Bit
+#   Sample Rate the session's own rate
+#   Offline     automatic: Real-time if any hardware insert is active, otherwise Offline
+# To have it click Bounce for you, add:  click bounce: true
+name: Bounce Mix at 24 Bit and Rename
+steps:
+- activate: Pro Tools
+
+- bounce dialog:
+  name: "{date}_{session}_EASMIX_{rate}_{bits}.wav"
+  source: "Built-in Output 1-2 (Stereo)*"
+  bits: 24
+  offline: auto

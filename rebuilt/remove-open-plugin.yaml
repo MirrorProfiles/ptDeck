@@ -1,0 +1,5 @@
+# Rebuilt for PT Deck
+# Takes the plug-in whose window is open out of its insert slot ('no insert').
+name: Remove Open Plugin
+steps:
+- remove open plugin:

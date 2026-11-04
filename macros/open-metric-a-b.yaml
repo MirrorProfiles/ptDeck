@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Open Metric A/B
+steps:
+- plugin window: 8
+  track: -OUT MASTER
+  set: toggle

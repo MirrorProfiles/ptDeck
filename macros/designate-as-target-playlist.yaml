@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Designate as Target Playlist
+steps:
+- press: cmd+shift+right

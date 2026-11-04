@@ -1,0 +1,6 @@
+# Imported from SoundFlow
+name: Assign bx_ssl 9000J
+steps:
+- insert plugin: bx_console SSL 9000 J
+  slot: first free
+  category: Plugin Alliance

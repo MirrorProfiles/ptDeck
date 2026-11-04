@@ -1,0 +1,6 @@
+# Rebuilt for PT Deck
+# Moves the Edit window's selection down a track (the ; key in Pro Tools).
+name: Edit Selection Down
+steps:
+- activate: Pro Tools
+- press: semicolon

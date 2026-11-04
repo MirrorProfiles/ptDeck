@@ -1,0 +1,27 @@
+# Imported from SoundFlow
+name: BD Delete Fades, Fill and Crossfade
+steps:
+- run macro: Fades - Delete
+
+- run macro: Beat Detective
+
+- click: Edit Smoothing
+  kind: radio button
+  window: Beat Detective
+  group: Operation
+
+- click: Capture Selection
+  kind: button
+  window: Beat Detective
+  group: Selection
+
+- click: Fill And Crossfade
+  kind: radio button
+  window: Beat Detective
+  group: 'Smoothing:'
+
+- click: Smooth
+  kind: button
+  window: Beat Detective
+
+- run macro: Beat Detective

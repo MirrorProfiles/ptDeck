@@ -1,0 +1,74 @@
+page: Commit Tracks
+buttons:
+- key: 2
+  label: Edit Sel\nOffline\nHide
+  macro: Commit - Edit Sel - Offline - Hide
+  color: '#b4217c'
+- key: 3
+  label: Edit Sel\nOffline\nDELETE
+  macro: Commit - Edit Sel - Offline - Delete
+  color: '#7a1030'
+- key: 4
+  label: Edit Sel\nReal-time\nHide
+  macro: Commit - Edit Sel - Realtime - Hide
+  color: '#b4217c'
+- key: 5
+  label: Edit Sel\nReal-time\nDELETE
+  macro: Commit - Edit Sel - Realtime - Delete
+  color: '#7a1030'
+- key: 10
+  label: Entire Track\nOffline\nHide
+  macro: Commit - Entire Track - Offline - Hide
+  color: '#b4217c'
+- key: 11
+  label: Entire Track\nOffline\nDELETE
+  macro: Commit - Entire Track - Offline - Delete
+  color: '#7a1030'
+- key: 12
+  label: Entire Track\nReal-time\nHide
+  macro: Commit - Entire Track - Realtime - Hide
+  color: '#b4217c'
+- key: 13
+  label: Entire Track\nReal-time\nDELETE
+  macro: Commit - Entire Track - Realtime - Delete
+  color: '#7a1030'
+- key: 6
+  label: 'Edit Sel
+
+    Offline
+
+    Keep Source'
+  macro: Commit - Edit Sel - Offline - Do Nothing
+  color: '#5a3a6a'
+- key: 7
+  label: 'Edit Sel
+
+    Real-time
+
+    Keep Source'
+  macro: Commit - Edit Sel - Realtime - Do Nothing
+  color: '#5a3a6a'
+- key: 14
+  label: 'Entire Track
+
+    Offline
+
+    Keep Source'
+  macro: Commit - Entire Track - Offline - Do Nothing
+  color: '#5a3a6a'
+- key: 15
+  label: 'Entire Track
+
+    Real-time
+
+    Keep Source'
+  macro: Commit - Entire Track - Realtime - Do Nothing
+  color: '#5a3a6a'
+link:
+  page: Mix Prep
+  key: 8
+  button:
+    label: Commit\nTracks
+    folder: Commit Tracks
+    color: '#b4217c'
+version: 2

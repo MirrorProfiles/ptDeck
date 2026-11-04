@@ -1,0 +1,6 @@
+# The Beat Detective folder gets its new high-resolution detective picture.
+update buttons on: Mix Prep
+buttons:
+- folder: Beat Detective
+  set:
+    icon: beat-detective.png

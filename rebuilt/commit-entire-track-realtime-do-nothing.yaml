@@ -1,0 +1,39 @@
+# Rebuilt for PT Deck: Track > Commit with
+#   Commit: Entire Track (Selected Tracks), Offline off, Source Tracks: Do Nothing
+#   Consolidate Clips on, render Volume and Mute + Pan automation.
+name: Commit - Entire Track - Realtime - Do Nothing
+steps:
+- menu: Track > Commit...
+
+- wait for window: Commit Tracks
+
+- popup: "#1"                  # Commit: Selected Tracks
+  choose: Selected Tracks
+  window: Commit Tracks
+
+- checkbox: Consolidate Clips
+  set: on
+  window: Commit Tracks
+
+- checkbox: Volume and Mute
+  set: on
+  window: Commit Tracks
+
+- checkbox: Pan
+  set: on
+  window: Commit Tracks
+
+- checkbox: Offline
+  set: off
+  window: Commit Tracks
+
+- popup: "#2"                  # Source Tracks: Do Nothing
+  choose: Do Nothing
+  window: Commit Tracks
+
+- click: OK
+  window: Commit Tracks
+
+- wait for window: Commit Tracks
+  gone: true
+  timeout: 3600

@@ -1,0 +1,131 @@
+# Rebuilt for PT Deck from your SoundFlow script. With the drum tracks' edit selection:
+#   copy -> new playlist + paste, renamed Kick.Comp.01 -> Kick.Edited
+#        -> new playlist + paste, renamed Kick.Edited.01 -> Kick.C
+#   then Edit > Consolidate Clip.
+name: BD Tidy Up
+steps:
+- activate: Pro Tools
+
+- press: cmd+c                  # copy the selection
+
+- press: ctrl+alt+backslash      # new playlist
+
+- accept dialog                 # keep Pro Tools' default playlist name
+
+- press: cmd+v                  # paste the copied selection into it
+
+- press: alt+shift+r            # Batch Track Rename
+
+- wait for window: Batch Track Rename
+
+- checkbox: Replace
+  set: on
+  window: Batch Track Rename
+
+- set text: "#1"            # Replace: Find
+  to: "Comp"
+  window: Batch Track Rename
+  typing: true
+
+- set text: "#2"            # Replace: Replace with
+  to: "Edited"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Clear Existing Name
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Regular Expressions
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- set text: "#3"            # Trim: From Beginning
+  to: "0"
+  window: Batch Track Rename
+  typing: true
+
+- set text: "#4"            # Trim: From End
+  to: "3"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Add
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Numbering
+  set: off
+  window: Batch Track Rename
+
+- click: OK
+  window: Batch Track Rename
+
+- wait for window: Batch Track Rename
+  gone: true
+
+- press: ctrl+alt+backslash      # new playlist
+
+- accept dialog                 # keep Pro Tools' default playlist name
+
+- press: cmd+v                  # paste the copied selection into it
+
+- press: alt+shift+r            # Batch Track Rename
+
+- wait for window: Batch Track Rename
+
+- checkbox: Replace
+  set: on
+  window: Batch Track Rename
+
+- set text: "#1"            # Replace: Find
+  to: "Edited"
+  window: Batch Track Rename
+  typing: true
+
+- set text: "#2"            # Replace: Replace with
+  to: "C"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Clear Existing Name
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Regular Expressions
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Trim
+  set: on
+  window: Batch Track Rename
+
+- set text: "#3"            # Trim: From Beginning
+  to: "0"
+  window: Batch Track Rename
+  typing: true
+
+- set text: "#4"            # Trim: From End
+  to: "3"
+  window: Batch Track Rename
+  typing: true
+
+- checkbox: Add
+  set: off
+  window: Batch Track Rename
+
+- checkbox: Numbering
+  set: off
+  window: Batch Track Rename
+
+- click: OK
+  window: Batch Track Rename
+
+- wait for window: Batch Track Rename
+  gone: true
+
+- menu: Edit > Consolidate Clip

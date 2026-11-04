@@ -1,0 +1,25 @@
+# Rebuilt for PT Deck: opens File > Import > Session Data and picks the template.
+# The template's location is on the 'paste:' line below.
+name: 2025 Import Session Data
+steps:
+- activate: Pro Tools
+
+- menu: File > Import > Session Data...
+
+- wait: 1500ms                  # let the file browser open
+
+- press: cmd+shift+g            # "Go to folder" box
+
+- wait: 800ms
+
+- press: cmd+a                  # clear anything already in the box
+
+- paste: /Volumes/CURRENT SESSIONS/EAS STUDIOS/TEMPLATES/EAS VCA MIX TEMPLATE.ptx
+
+- wait: 800ms
+
+- press: return                 # go to the file (it gets selected)
+
+- wait: 1s
+
+- press: return                 # open it

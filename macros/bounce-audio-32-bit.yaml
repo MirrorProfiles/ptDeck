@@ -1,0 +1,35 @@
+# Imported from SoundFlow
+name: Bounce Audio 32 Bit
+steps:
+- menu: File > Bounce Mix...
+
+- click: 'Session Folder:'
+  kind: radio button
+  window: Bounce Mix
+  group: Location
+
+- checkbox: Offline
+  set: on
+  window: Bounce Mix
+
+- checkbox: Import After Bounce
+  set: off
+  window: Bounce Mix
+  group: Location
+
+- checkbox: Add MP3
+  set: off
+  window: Bounce Mix
+  group: Audio
+
+- popup: '#4'
+  choose: 44.1 kHz
+  kind: popup
+  window: Bounce Mix
+  group: Audio
+
+- popup: '#3'
+  choose: 32 Bit Float
+  kind: popup
+  window: Bounce Mix
+  group: Audio

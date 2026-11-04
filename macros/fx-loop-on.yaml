@@ -1,0 +1,7 @@
+# Imported from SoundFlow
+name: FX Loop On
+steps:
+- midi cc: 88
+  value: 127
+  channel: 1
+  port: Maschine MK3

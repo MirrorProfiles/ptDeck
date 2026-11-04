@@ -1,0 +1,4 @@
+# Imported from SoundFlow
+name: Superior Drummer
+steps:
+- todo: 'sf.soundflow.runCommand({ commandId: ''user:clgxr9say000chg10uyi4ma5h:ckilausmg000br910x1wluhgz'', props: { menuPath1: ["Track Presets","INSTRUMENTS"], menuPath2: ["SD3"], } })'

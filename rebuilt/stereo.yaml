@@ -1,0 +1,7 @@
+# Rebuilt for PT Deck: right-click each selected track > Change Track Width > Stereo.
+# Pro Tools only allows this on tracks with no clips and no extra playlists;
+# those tracks are skipped (and noted in the log).
+name: Stereo
+steps:
+- track menu: Change Track Width > Stereo
+  tracks: selected

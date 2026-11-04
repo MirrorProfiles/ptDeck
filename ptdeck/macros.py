@@ -1615,6 +1615,11 @@ class Runner:
             raise E.NotFound("the H/W Buffer Size pop-up")
         pop = self.until(buffer_popup, 3, "the H/W Buffer Size pop-up")
         current = " ".join(E.labels(pop) + [str(pop.attr("AXValue") or "")])
+        from . import settings
+        base = self.lib.folder.parent
+        m = re.search(r"\b(\d+) samples\b", current.lower())
+        if m:                                    # what Pro Tools had: 'lit when: {buffer size: N}' keys
+            settings.put(base, "buffer size", int(m.group(1)))
         if re.search(rf"\b{size} samples\b", current.lower()):
             self.log(f"    buffer is already {size} samples")
         else:
@@ -1623,6 +1628,7 @@ class Runner:
         if ok:
             ok[0].perform("AXPress")
         self.until(lambda: self._gone_window("Playback Engine*"), 15, "the Playback Engine window to close")
+        settings.put(base, "buffer size", size)
         self.log(f"  H/W buffer set to {size} samples")
 
     def _gone_window(self, title):

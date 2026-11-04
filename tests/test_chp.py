@@ -274,3 +274,16 @@ def test_lit_outline_shows_on_picture_keys(tmp_path):
     off = D.render(D.lit_button(b, False), 96, tmp_path)
     on = D.render(D.lit_button(b, True), 96, tmp_path)
     assert off.getpixel((5, 48)) == (10, 10, 10) and on.getpixel((5, 48)) == (34, 184, 240)
+
+
+def test_lit_when_follows_a_remembered_value(tmp_path):
+    from ptdeck import settings
+    c = deck_with(tmp_path, {"home": "Main", "pages": {"Main": [
+        {"key": 1, "label": "Buffer\\n128", "macro": "x", "color": "#606060", "lit when": {"buffer size": 128},
+         "lit color": "#2e8b57"}]}})
+    c.slots = D.layout(c.cfg, "Main", 32)
+    assert c.shown(0, c.slots[0])["color"] == "#606060"                   # not known yet
+    settings.put(tmp_path, "buffer size", 128)
+    assert c.shown(0, c.slots[0])["color"] == "#2e8b57"
+    settings.put(tmp_path, "buffer size", 1024)
+    assert c.shown(0, c.slots[0])["color"] == "#606060"

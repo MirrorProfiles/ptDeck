@@ -922,9 +922,12 @@ def test_set_buffer_size(tmp_path):
     app = make_app([El("AXWindow", "Edit: Song")], bar)
     mi.on_press = lambda: app.a["AXWindows"].append(win)
     ok.on_press = lambda: app.a["AXWindows"].remove(win)
-    (tmp_path / "b.yaml").write_text((DECK / "rebuilt" / "buffer-128.yaml").read_text())
-    Runner(FakeSys(app), Library(tmp_path), log=lambda m: None).run("Buffer 128")
+    from ptdeck import settings
+    (tmp_path / "macros").mkdir()
+    (tmp_path / "macros" / "b.yaml").write_text((DECK / "rebuilt" / "buffer-128.yaml").read_text())
+    Runner(FakeSys(app), Library(tmp_path / "macros"), log=lambda m: None).run("Buffer 128")
     assert item128.presses == 1 and ok.presses == 1
+    assert settings.get(tmp_path, "buffer size") == 128          # remembered for 'lit when' keys
 
 
 def test_install_update_keeps_your_files(tmp_path, monkeypatch):

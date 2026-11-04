@@ -18,7 +18,7 @@ MODELS = {
 
 BUTTON_FIELDS = {"label", "macro", "folder", "back", "home", "icon", "color", "text color",
                  "key", "font size", "note", "outline", "live", "live track", "corner", "metric", "metric ab", "glyph", "style", "audiosuite", "live name", "font", "strip", "strip color", "strip text color", "color bar", "if empty", "metric toggle",
-                 "lit menu", "lit color", "lit label", "lit text color", "lit outline", "gradient", "palette color"}
+                 "lit menu", "lit when", "lit color", "lit label", "lit text color", "lit outline", "gradient", "palette color"}
 
 FONT_PATHS = [
     "/System/Library/Fonts/SFNS.ttf",
@@ -607,7 +607,7 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
         cf = font(max(9, size // 8))
         d.text((max(3, size // 18), max(2, size // 24) + bar), str(button["corner"]), fill="#9fb6cc", font=cf)
     if (button.get("folder") or button.get("folder_outline")) and button.get("outline") != "none":
-        w = max(3, size // 12) if button.get("_lit_outline") else max(2, size // 36)   # lit: easy to see
+        w = max(3, size // 24) if button.get("_lit_outline") else max(2, size // 36)   # lit: a little bolder
         d.rounded_rectangle([w // 2 + 1, w // 2 + 1, size - w // 2 - 2, size - w // 2 - 2],
                             radius=size // 10, outline=button.get("outline", "#d8d8d8"), width=w)
     ring = {"running": "#ffcc00", "ok": "#33dd66", "error": "#ff3333"}.get(state)
@@ -737,7 +737,7 @@ class DeckController:
 
     def shown(self, k, btn):
         """The button as drawn: live insert keys take their look from Pro Tools."""
-        if btn and btn.get("lit menu"):
+        if btn and (btn.get("lit menu") or btn.get("lit when")):
             return lit_button(btn, self._lit(btn))
         if btn and btn.get("live"):
             return live_button(btn, self.live.get((self.page, k)), self.base)
@@ -995,9 +995,14 @@ class DeckController:
         return [k for k, b in keys if self._lit(b) != before[k]]
 
     def _lit(self, button) -> bool | None:
-        """Is this 'lit menu' key lit? All its menu items must be ticked (None if not known yet)."""
+        """Is this key lit? Every 'lit menu' item must be ticked and every 'lit when' value PT Deck
+        remembers must match (None if not known yet)."""
         from .macros import Runner
+        from . import settings
         states = [self.menu_lit.get(Runner.menu_key(p)) for p in lit_paths(button)]
+        for name, want in (button.get("lit when") or {}).items():
+            have = settings.get(self.base, str(name))
+            states.append(None if have is None else str(have).lower() == str(want).lower())
         if not states or any(s is None for s in states):
             return None
         return all(states)
@@ -1166,6 +1171,8 @@ class DeckController:
                 self.note_menu_changes(self.runner.menu_changes)
                 if same():
                     self.draw()
+            elif same() and any(b and b.get("lit when") for b in self.slots):
+                self.draw()               # a remembered value (e.g. buffer size) may have changed
             self._after_press()        # the live keys catch up once Pro Tools has settled
             if same():
                 self._flash(page, key, state)

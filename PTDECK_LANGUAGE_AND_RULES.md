@@ -324,6 +324,7 @@ page settings:
 | `palette color` | A Pro Tools track-colour number (as `track color:` takes and the `colours` chart shows): the key shows that exact colour once PT Deck has read Pro Tools' palette; `color` is shown until then |
 | `gradient` | Background blended left to right through a list of colours, e.g. `['#1b3fae', '#e0242a']` (classic look) |
 | `lit menu` | A menu-bar path (`View > Clip > Name`): the key shows its lit look while that item is ticked. A list of paths lights only when every one is ticked (e.g. `['Options > Solo Mode > AFL*', 'Options > Solo Mode > X-OR*']`; in the Manager, join them with ` + `). The deck follows ticks its own keys change straight away, and re-reads Pro Tools every few seconds |
+| `lit when` | Values PT Deck remembers that must all match for the key to light, e.g. `{buffer size: 128}`. `buffer size` is recorded by `set buffer size:` steps (Pro Tools can't report it otherwise), so a change made in Pro Tools itself shows after the next buffer key press. Can be combined with `lit menu` |
 | `lit color` | Background while lit |
 | `lit label` | Label while lit (default: the normal label) |
 | `lit text color` | Label colour while lit |

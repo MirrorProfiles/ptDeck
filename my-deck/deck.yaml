@@ -165,7 +165,7 @@ pages:
       lit color: '#e8a823', lit text color: '#111111', lit when: {midi ch1 cc80: 127}}
     - {key: 26, label: "Amp\n2", macro: ampete-amp-2-on, color: '#4a3608', text color: '#e8a823',
       lit color: '#e8a823', lit text color: '#111111', lit when: {midi ch1 cc81: 127}}
-    - {key: 27, label: "Amp\n3", macro: ampete-amp-43-on, color: '#4a3608', text color: '#e8a823',
+    - {key: 27, label: "Amp\n3", macro: ampete-amp-3-on, color: '#4a3608', text color: '#e8a823',
       lit color: '#e8a823', lit text color: '#111111', lit when: {midi ch1 cc82: 127}}
     - {key: 28, label: "Amp\n4", macro: ampete-amp-4-on, color: '#4a3608', text color: '#e8a823',
       lit color: '#e8a823', lit text color: '#111111', lit when: {midi ch1 cc83: 127}}

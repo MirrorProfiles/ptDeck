@@ -1,5 +1,5 @@
 # Imported from SoundFlow
-name: Ampete Amp 43 On
+name: Ampete Amp 3 On
 steps:
 - midi cc: 80
   value: 0

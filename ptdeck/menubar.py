@@ -311,6 +311,7 @@ def run():
     from Foundation import NSObject, NSTimer
 
     from . import __main__ as M
+    M.trim_log(BASE / "ptdeck-app.log")      # the app's own log, held open by its starter
     from .deck import DeckController
     from .macros import Runner
     from .manager import PORT, Manager

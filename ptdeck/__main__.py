@@ -18,12 +18,41 @@ from .paths import APP, DATA
 
 BASE = DATA                      # your deck: deck.yaml, macros, icons...
 LOG_FILE = APP / "ptdeck.log"
+LOG_LIMIT = 1_000_000            # bytes; past this the log rolls over to ptdeck.log.old
+
+
+def roll_log(path: Path = None, limit: int = None):
+    """Once the log passes LOG_LIMIT, move it to '<name>.old' (replacing the last one) so it never
+    grows for good. Called before every line (a stat is cheap)."""
+    path = path or LOG_FILE
+    try:
+        if path.stat().st_size > (limit or LOG_LIMIT):
+            path.replace(path.with_name(path.name + ".old"))
+    except OSError:
+        pass
+
+
+def trim_log(path: Path, keep: int = 200_000, limit: int = None):
+    """Cut a log that other programs hold open (PT Deck.app's ptdeck-app.log) down to its last
+    'keep' bytes in place, once it passes LOG_LIMIT. Appending writers carry on at the new end."""
+    try:
+        if path.stat().st_size <= (limit or LOG_LIMIT):
+            return
+        with path.open("r+b") as f:
+            f.seek(-keep, 2)
+            tail = f.read().split(b"\n", 1)[-1]
+            f.seek(0)
+            f.write(tail)
+            f.truncate()
+    except OSError:
+        pass
 
 
 def log(msg):
     line = f"{datetime.datetime.now():%H:%M:%S} {msg}"
     print(line, flush=True)
     try:
+        roll_log()
         with LOG_FILE.open("a", encoding="utf-8") as f:
             f.write(line + "\n")
     except OSError:

@@ -56,7 +56,7 @@ work; closing it stops PT Deck.
 
 While a macro runs, its key gets a **yellow** border. It flashes **green** when
 it finishes, or **red** if something went wrong. The reason is shown in the
-Terminal window and saved in `ptdeck.log`.
+Terminal window and saved in `ptdeck.log` (it rolls over to `ptdeck.log.old` at 1 MB).
 
 ## 2. Bringing scripts over from SoundFlow
 

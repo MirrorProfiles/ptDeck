@@ -2333,3 +2333,26 @@ def test_colour_keys_use_palette_numbers():
     for f in sorted((DECK / "rebuilt").glob("colour-*.yaml")):
         step = Library(DECK / "rebuilt").load(f)["steps"][0]
         assert isinstance(step["track color"], int), f.name
+
+
+# ---------- logs don't grow for good ----------
+
+def test_log_rolls_over_and_app_log_is_trimmed(tmp_path, monkeypatch):
+    from ptdeck import __main__ as M
+    logf = tmp_path / "ptdeck.log"
+    monkeypatch.setattr(M, "LOG_FILE", logf)
+    monkeypatch.setattr(M, "LOG_LIMIT", 100)
+    M.log("one")
+    assert logf.read_text().endswith(" one\n") and not logf.with_name("ptdeck.log.old").exists()
+    logf.write_text("x" * 200 + "\n")
+    M.log("two")
+    assert logf.with_name("ptdeck.log.old").read_text().startswith("xxx")
+    assert logf.read_text().endswith(" two\n") and len(logf.read_text()) < 100
+
+    app = tmp_path / "ptdeck-app.log"
+    app.write_text("".join(f"line {i}\n" for i in range(100)))
+    size = app.stat().st_size
+    M.trim_log(app, keep=20, limit=size)                      # not over the limit: untouched
+    assert app.stat().st_size == size
+    M.trim_log(app, keep=20, limit=size - 1)
+    assert app.read_text() == "line 98\nline 99\n"            # last whole lines, in place

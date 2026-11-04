@@ -21,5 +21,16 @@ Essentials:
 command needs a line there in the same change; `test_language_and_rules_are_complete` fails until it
 has one. Add new Pro Tools quirks to section 9 and new house rules to section 8.
 
+**Shared engine.** Chris's CHP (github.com/CFH1313/chp, git remote `chp`) runs this same engine with
+his own deck, so macros and keys can move between the two. To keep that easy:
+- Keep engine changes (`ptdeck/`, `tests/`, `PTDECK_LANGUAGE_AND_RULES.md`, `requirements.txt`, the
+  launchers) in commits separate from `my-deck/` changes, so either side can take them cleanly.
+- Take CHP's engine changes file by file: `git fetch chp`, then
+  `git checkout chp/main -- <engine paths>`. Never merge chp/main as a whole: it would replace
+  this deck with Chris's.
+- CHP-specific tests go in `tests/test_chp.py`; neither test file may read a real deck.
+- Before committing engine changes, compare `ptdeck preview` pictures before and after, so the
+  deck still looks the same.
+
 `docs/cloud-session-notes.md` is the record from the conversation that first built PT Deck,
 including things still to test.

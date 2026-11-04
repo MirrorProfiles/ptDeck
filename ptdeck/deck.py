@@ -17,7 +17,8 @@ MODELS = {
 }
 
 BUTTON_FIELDS = {"label", "macro", "folder", "back", "home", "icon", "color", "text color",
-                 "key", "font size", "note", "outline", "live", "live track", "corner", "metric", "metric ab", "glyph", "style", "audiosuite", "live name", "font", "strip", "strip color", "strip text color", "color bar", "if empty", "metric toggle"}
+                 "key", "font size", "note", "outline", "live", "live track", "corner", "metric", "metric ab", "glyph", "style", "audiosuite", "live name", "font", "strip", "strip color", "strip text color", "color bar", "if empty", "metric toggle",
+                 "lit menu", "lit color", "lit label", "lit text color", "gradient", "palette color"}
 
 FONT_PATHS = [
     "/System/Library/Fonts/SFNS.ttf",
@@ -50,8 +51,19 @@ def load_config(path: Path) -> dict:
     return cfg
 
 
+PAGE_SETTINGS = {"back button", "back label", "back color", "back font size", "page titles",
+                 "title pattern", "icon style", "key font"}
+
+
+def page_cfg(cfg: dict, page: str) -> dict:
+    """Deck-wide settings with this page's own 'page settings' on top (e.g. one page plain, the rest designed)."""
+    own = (cfg.get("page settings") or {}).get(page) or {}
+    return {**cfg, **{k: v for k, v in own.items() if k in PAGE_SETTINGS}}
+
+
 def layout(cfg: dict, page: str, key_count: int, base=None) -> list[dict | None]:
     """Which button goes on which key for a page. Folder pages get a Back button on key 1."""
+    cfg = page_cfg(cfg, page)
     items = cfg["pages"].get(page)
     if items is None:
         raise ConfigError(f"There's no page called '{page}'")
@@ -80,6 +92,10 @@ def layout(cfg: dict, page: str, key_count: int, base=None) -> list[dict | None]
         if i is None:
             raise ConfigError(f"Page '{page}' has more buttons than the deck has keys ({key_count})")
         slots[i] = item  # None keeps the key blank
+    if cfg.get("key font"):                 # the page's font, for keys that don't name their own
+        for i, b in enumerate(slots):
+            if b and not b.get("font") and not b.get("banner"):
+                slots[i] = dict(b, _font=cfg["key font"])
     if str(cfg.get("icon style", "classic")).lower() == "designed":
         for i, b in enumerate(slots):
             if b and not b.get("back") and not b.get("banner"):
@@ -165,6 +181,134 @@ def font(size: int):
                     continue
         _font_cache[size] = f or ImageFont.load_default(size=size)
     return _font_cache[size]
+
+
+FONT_DIRS = ["~/Library/Fonts", "/Library/Fonts", "/System/Library/Fonts", "/System/Library/Fonts/Supplemental",
+             # Adobe Fonts (Creative Cloud) keeps activated fonts here, under hidden file names
+             "~/Library/Application Support/Adobe/CoreSync/plugins/livetype",
+             "/usr/share/fonts"]
+_named_index: dict | None = None
+missing_fonts: set = set()       # key fonts asked for but not found (the deck logs each once)
+
+
+def _coretext_font(name: str):
+    """Ask macOS for a font by name, the way apps' font menus do. Finds fonts wherever they're installed,
+    including ones activated by Adobe Fonts or a font manager. (file, index) or None."""
+    try:
+        import CoreText
+    except Exception:  # noqa: BLE001 - not a Mac, or the CoreText bridge isn't installed
+        return None
+    want = _squash(name)
+    for cand in dict.fromkeys([name, name.replace(" ", "-"), name.replace(" ", "")]):
+        try:
+            f = CoreText.CTFontCreateWithName(cand, 12, None)
+            if f is None:
+                continue
+            names = {_squash(CoreText.CTFontCopyFullName(f) or ""), _squash(CoreText.CTFontCopyPostScriptName(f) or "")}
+            if want not in names:                   # macOS hands back a stand-in when it has no match
+                continue
+            url = CoreText.CTFontCopyAttribute(f, CoreText.kCTFontURLAttribute)
+            path = str(url.path()) if url is not None else None
+        except Exception:  # noqa: BLE001
+            continue
+        if not path or not Path(path).exists():
+            continue
+        for idx in range(16 if path.lower().endswith(".ttc") else 1):   # which face in a collection
+            try:
+                family, style = ImageFont.truetype(path, 12, index=idx).getname()
+            except (OSError, ValueError):
+                break
+            plain = str(style).lower() in ("regular", "book", "normal", "roman")
+            if want in (_squash(f"{family} {style}"), _squash(family) if plain else ""):
+                return path, idx
+        return path, 0
+    return None
+
+
+def _squash(name: str) -> str:
+    return re.sub(r"[^a-z0-9]", "", str(name).lower())
+
+
+WEIGHT_WORDS = {"thin", "hairline", "light", "book", "regular", "normal", "roman", "medium", "demi", "demibold",
+                "semibold", "bold", "heavy", "black", "extrabold", "ultra"}
+font_substitutes: dict = {}      # asked-for key font -> the installed font used instead
+
+
+def font_candidates(name: str) -> list[str]:
+    """The name, then the same family with fewer words, keeping the weight:
+    'Futura PT Medium' -> 'Futura PT Medium', 'Futura PT', 'Futura Medium', 'Futura'.
+    (macOS ships 'Futura' with a Medium weight; 'Futura PT' is Paratype's separate font.)"""
+    words = str(name).split()
+    weight = words[-1] if len(words) > 1 and words[-1].lower() in WEIGHT_WORDS else None
+    family = words[:-1] if weight else words
+    out = [str(name)]
+    if weight:
+        out.append(" ".join(family))
+    for k in range(len(family) - 1, 0, -1):
+        if weight:
+            out.append(" ".join(family[:k] + [weight]))
+        out.append(" ".join(family[:k]))
+    return list(dict.fromkeys(out))
+
+
+def _font_index() -> dict:
+    """squashed font name -> (file, index), from every font file in FONT_DIRS (built once)."""
+    global _named_index
+    if _named_index is not None:
+        return _named_index
+    index, files = {}, []
+    from .paths import ASSETS
+    for d in FONT_DIRS + [str(Path(ASSETS) / "fonts")]:
+        root = Path(d).expanduser()
+        if root.is_dir():
+            files += [p for p in root.rglob("*") if p.suffix.lower() in (".ttf", ".otf", ".ttc")]
+    for p in files:                       # names inside each font first...
+        for idx in range(16 if p.suffix.lower() == ".ttc" else 1):
+            try:
+                family, style = ImageFont.truetype(str(p), 12, index=idx).getname()
+            except (OSError, ValueError):
+                break
+            plain = str(style).lower() in ("regular", "book", "normal", "roman")
+            for key in (_squash(f"{family} {style}"), _squash(family) if plain else None):
+                if key:
+                    index.setdefault(key, (str(p), idx))
+    for p in files:                       # ...then file names (FuturaPT-Medium.otf) for anything else
+        index.setdefault(_squash(p.stem), (str(p), 0))
+    _named_index = index
+    return index
+
+
+def find_font(name: str):
+    """(file, index) of an installed font by its name as Font Book shows it, e.g. 'Futura PT Medium'.
+    Asks macOS first, then searches the font folders; if that exact font isn't installed, the same family
+    with fewer words (see font_candidates) is used instead, and remembered in font_substitutes."""
+    for cand in font_candidates(name):
+        found = _coretext_font(cand) or _font_index().get(_squash(cand))
+        if found:
+            if cand != name:
+                font_substitutes[str(name)] = cand
+            return found
+    return None
+
+
+def named_font(name, size: int):
+    """A key font by name ('narrow' = PT Deck's condensed font); falls back to the standard font."""
+    if not name:
+        return font(size)
+    if str(name).lower() == "narrow":
+        from .look import font as look_font
+        return look_font("narrow", size)
+    key = (str(name), size)
+    if key not in _font_cache:
+        found = find_font(str(name))
+        try:
+            _font_cache[key] = ImageFont.truetype(found[0], size, index=found[1]) if found else font(size)
+        except OSError:
+            found = None
+            _font_cache[key] = font(size)
+        if not found:
+            missing_fonts.add(str(name))
+    return _font_cache[key]
 
 
 def _wrap(draw, text, fnt, width):
@@ -375,8 +519,24 @@ def track_tint(colour, keep=0.42):
     return "#%02x%02x%02x" % (int(r * keep), int(g * keep), int(b * keep))
 
 
+def palette_button(button: dict, base) -> dict:
+    """A 'palette color: N' key takes Pro Tools' own colour N as its background (once PT Deck has read
+    the palette from Pro Tools; until then its 'color' is shown)."""
+    from .ptsl import COLOUR_BASE
+    pal = _remembered(base, "track palette") or []
+    try:
+        i = int(button["palette color"]) - COLOUR_BASE
+    except (TypeError, ValueError):
+        return button
+    if 0 <= i < len(pal):
+        return dict(button, color=pal[i])
+    return button
+
+
 def render(button: dict | None, size: int, base: Path, state: str = "idle") -> Image.Image:
     """Draw one key. state: idle / running / ok / error."""
+    if button and button.get("palette color") is not None:
+        button = palette_button(button, base)
     if button and button.get("live") and "corner" not in button:
         button = live_button(button, None, base)        # previews / Manager: placeholder look
     if button and button.get("live name") and "corner" not in button:
@@ -404,6 +564,8 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
     img = Image.new("RGB", (size, size), bg)
     if not button:
         return img
+    if button.get("gradient"):              # colours blended left to right, e.g. a rainbow
+        img.paste(gradient_image(button["gradient"], size), (0, 0))
     d = ImageDraw.Draw(img)
     label = str(button.get("label", "")).replace("\\n", "\n")
     icon = button.get("icon")
@@ -427,13 +589,8 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
     if label:
         avail_h = size - text_top - pad
         fs = int(button.get("font size", size // 5 if not icon else size // 7))
-        narrow = button.get("font") == "narrow"
         while True:
-            if narrow:
-                from .look import font as look_font
-                fnt = look_font("narrow", fs)
-            else:
-                fnt = font(fs)
+            fnt = named_font(button.get("font") or button.get("_font"), fs)
             lines = _wrap(d, label, fnt, size - 2 * pad)
             lh = fs + 2
             if (len(lines) * lh <= avail_h and all(d.textlength(l, font=fnt) <= size - 2 * pad for l in lines)) or fs <= 8:
@@ -457,6 +614,36 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
     if ring:
         d.rectangle([0, 0, size - 1, size - 1], outline=ring, width=max(3, size // 14))
     return img
+
+
+def gradient_image(colours, size: int) -> Image.Image:
+    from .look import rgb
+    cols = [rgb(c) for c in (colours if isinstance(colours, list) else str(colours).split(","))]
+    img = Image.new("RGB", (size, size))
+    if len(cols) < 2:
+        cols = cols * 2
+    px = img.load()
+    for x in range(size):
+        t = x / max(1, size - 1) * (len(cols) - 1)
+        i = min(int(t), len(cols) - 2)
+        f = t - i
+        c = tuple(int(cols[i][j] + (cols[i + 1][j] - cols[i][j]) * f) for j in range(3))
+        for y in range(size):
+            px[x, y] = c
+    return img
+
+
+def lit_button(button: dict, on) -> dict:
+    """A 'lit menu' key: its lit look while that Pro Tools menu item is ticked."""
+    if not on:
+        return button
+    out = dict(button, color=button.get("lit color", button.get("color")))
+    out.pop("gradient", None) if button.get("lit color") else None
+    if button.get("lit label"):
+        out["label"] = button["lit label"]
+    if button.get("lit text color"):
+        out["text color"] = button["lit text color"]
+    return out
 
 
 def preview(cfg: dict, base: Path, page: str, model: str = "original") -> Image.Image:
@@ -487,6 +674,7 @@ class DeckController:
         self.slots: list = []
         self._mtime = self.cfg_path.stat().st_mtime
         self._stop = threading.Event()
+        self.menu_lit, self._menu_read, self._menu_items = {}, {}, {}
 
     # pure-ish parts, also used by tests
     def key_count(self):
@@ -532,8 +720,15 @@ class DeckController:
     live: dict = {}          # key -> (plug-in name, state) last read from Pro Tools
     metric_state: dict | None = None   # MetricAB: {'selected': 'B2', 'names': {...}}
 
+    menu_lit: dict = {}      # menu_key -> ticked, for 'lit menu' keys (shared with the runner)
+    _menu_read: dict = {}    # menu_key -> last tick read from Pro Tools
+    _menu_items: dict = {}   # menu_key -> the menu item element, remembered so a re-check is one request
+
     def shown(self, k, btn):
         """The button as drawn: live insert keys take their look from Pro Tools."""
+        if btn and btn.get("lit menu"):
+            from .macros import Runner
+            return lit_button(btn, self.menu_lit.get(Runner.menu_key(btn["lit menu"])))
         if btn and btn.get("live"):
             return live_button(btn, self.live.get((self.page, k)), self.base)
         if btn and btn.get("live name"):
@@ -576,6 +771,17 @@ class DeckController:
         btn = slots[k] if 0 <= k < len(slots) else None
         return render(self.shown(k, btn), size, self.base, self.key_states.get((self.page, k), "idle"))
 
+    def _say_missing_fonts(self):
+        said = self.__dict__.setdefault("_fonts_said", set())
+        for f, used in sorted(font_substitutes.items()):
+            if ("sub", f) not in said:
+                said.add(("sub", f))
+                self.log(f"key font '{f}' isn't installed, so keys use '{used}' (the nearest installed font).")
+        for f in sorted(missing_fonts - said):
+            said.add(f)
+            self.log(f"✗ key font '{f}' isn't installed (or macOS won't share it), so keys use the standard font. "
+                     "Check the name in Font Book; Adobe Fonts must be switched on in Creative Cloud.")
+
     def draw(self, only: int | None = None, state: str = "idle"):
         self.slots = layout(self.cfg, self.page, self.key_count(), self.base)
         self.version += 1
@@ -585,6 +791,7 @@ class DeckController:
             self.key_states = {**self.key_states, (self.page, only): state}
         deck = self.deck
         if not deck:
+            self._say_missing_fonts()
             return
         from StreamDeck.ImageHelpers import PILHelper
         try:
@@ -597,6 +804,7 @@ class DeckController:
                     deck.set_key_image(k, PILHelper.to_native_key_format(deck, img))
         except Exception as e:  # noqa: BLE001 - unplugged / taken by another app mid-draw
             self._lost(e)
+        self._say_missing_fonts()
 
     def poller(self):
         if getattr(self, "_poller", None) is None:     # its own reader, separate from running macros
@@ -672,6 +880,8 @@ class DeckController:
             self.runner.hold_live_until = 0
             time.sleep(0.3)                   # give Pro Tools a moment to load the plug-in
         changed = self.poll_metric(fresh)
+        changed += self.poll_menus(fresh)
+        changed += self.poll_palette()
         live_keys = [(k, b) for k, b in enumerate(self.slots) if b and (b.get("live") or b.get("live name"))]
         if not live_keys or self.runner is None:
             return changed
@@ -738,6 +948,78 @@ class DeckController:
                 self.live[(self.page, k)] = info
                 changed.append(k)
         return changed
+
+    MENU_EVERY = 2.5             # seconds between reads of the 'lit menu' keys' ticks
+
+    def poll_menus(self, fresh=False):
+        """Re-read the ticks for this page's 'lit menu' keys; return keys whose look changed.
+        Light: each menu item is found once and then re-checked with a single request, menus are
+        never opened, and a reading only overrides what CHP believes when the reading itself changed
+        (Pro Tools can leave an old tick in a closed menu for a while after a key changed it)."""
+        from .macros import Runner
+        keys = [(k, b) for k, b in enumerate(self.slots) if b and b.get("lit menu")]
+        if not keys or self.runner is None:
+            return []
+        now = time.time()
+        if not fresh and now - getattr(self, "_menus_at", 0) < self.MENU_EVERY:
+            return []
+        self._menus_at = now
+        self.poller()
+        changed = []
+        for k, b in keys:
+            key = Runner.menu_key(b["lit menu"])
+            before = self.menu_lit.get(key)
+            try:
+                item = self._menu_items.get(key)
+                if item is None:
+                    item, _ = self._poller._menu_item(b["lit menu"], open_menus=False)
+                    if item is None:
+                        continue
+                    self._menu_items[key] = item
+                ticked = bool(item.attr("AXMenuItemMarkChar"))
+            except Exception:  # noqa: BLE001 - Pro Tools closed or its menus changed: look again next time
+                self._menu_items.pop(key, None)
+                continue
+            if key not in self._menu_read or self._menu_read[key] != ticked or key not in self.menu_lit:
+                self.menu_lit[key] = ticked
+            self._menu_read[key] = ticked
+            if self.menu_lit.get(key) != before:
+                changed.append(k)
+        return changed
+
+    def poll_palette(self):
+        """Read Pro Tools' track colours once per run (and remember them) for 'palette color' keys."""
+        keys = [k for k, b in enumerate(self.slots) if b and b.get("palette color") is not None]
+        if not keys or self.runner is None or getattr(self, "_palette_read", False):
+            return []
+        if time.time() - getattr(self, "_palette_tried", 0) < 20:
+            return []
+        self._palette_tried = time.time()
+        try:
+            pal = self.runner.sys.ptsl().palette()
+        except Exception:  # noqa: BLE001 - Pro Tools closed: try again later
+            return []
+        if not pal:
+            return []
+        from . import settings
+        hexes = ["#%02x%02x%02x" % tuple(c) for c in pal]
+        self._palette_read = True
+        if hexes == settings.get(self.base, "track palette"):
+            return []
+        settings.put(self.base, "track palette", hexes)
+        return keys
+
+    def note_menu_changes(self, changes):
+        """After a macro: record the ticks its menu steps changed, so 'lit menu' keys follow at once.
+        Items in a '... Mode' submenu are pick-one: choosing one unticks the others."""
+        for key, state in changes or []:
+            parent, _, _ = key.rpartition(" > ")
+            if parent.endswith("mode"):
+                for other in [o for o in self.menu_lit if o.startswith(parent + " > ")]:
+                    self.menu_lit[other] = False
+                self.menu_lit[key] = True
+            else:
+                self.menu_lit[key] = (not self.menu_lit.get(key, False)) if state is None else bool(state)
 
     # After a key press, leave Pro Tools alone this long before reading the live keys, so it can
     # finish what the key asked for (moving the selection, opening a window...) first.
@@ -808,6 +1090,8 @@ class DeckController:
             except Exception:  # noqa: BLE001
                 name = btn["macro"]
             self.busy = True           # the live keys don't read Pro Tools mid-macro
+            self.runner.believed = self.menu_lit
+            self.runner.menu_changes = []
             try:
                 self.runner.run(btn["macro"])
                 state = "ok"
@@ -817,6 +1101,10 @@ class DeckController:
                 state = "error"
                 results.record_run(self.base, name, False, str(e))
             self.busy = False
+            if self.runner.menu_changes:
+                self.note_menu_changes(self.runner.menu_changes)
+                if same():
+                    self.draw()
             self._after_press()        # the live keys catch up once Pro Tools has settled
             if same():
                 self._flash(page, key, state)

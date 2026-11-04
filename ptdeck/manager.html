@@ -130,6 +130,17 @@ dialog::backdrop { background:rgba(0,0,0,.6); }
           <div class="row"><input type="color" id="color"><label class="row" style="margin:0"><input type="checkbox" id="nocolor"> black</label></div></div>
         <div><label style="margin-top:0">Text</label><input type="color" id="tcolor" value="#ffffff"></div>
       </div>
+      <details id="lit-box" style="margin-top:12px">
+        <summary>Light up from a Pro Tools menu tick</summary>
+        <label>Menu item (e.g. View &gt; Clip &gt; Name). Leave empty for a normal key.</label>
+        <input type="text" id="lit-menu" placeholder="View > Edit Window Views > Comments*">
+        <label>Label while ticked (empty = same label)</label>
+        <input type="text" id="lit-label">
+        <div class="row" style="margin-top:8px">
+          <div><label style="margin-top:0">Background while ticked</label><input type="color" id="lit-color" value="#a3006e"></div>
+          <div><label style="margin-top:0">Text while ticked</label><input type="color" id="lit-tcolor" value="#ffffff"></div>
+        </div>
+      </details>
       <div class="row" style="margin-top:16px">
         <button class="primary" id="save-key">Save key</button>
         <button class="danger" id="clear-key">Clear key</button>
@@ -380,10 +391,24 @@ function select(i) {
   $("#nocolor").checked = !b?.color; $("#color").value = /^#[0-9a-f]{6}$/i.test(b?.color||"") ? b.color : "#333333";
   $("#tcolor").value = /^#[0-9a-f]{6}$/i.test(b?.["text color"]||"") ? b["text color"] : "#ffffff";
   $("#macro-status").innerHTML = macroStatus(b?.macro);
+  $("#lit-menu").value = b?.["lit menu"] || ""; $("#lit-label").value = (b?.["lit label"] || "").replace(/\\n/g, "\n");
+  $("#lit-color").value = /^#[0-9a-f]{6}$/i.test(b?.["lit color"]||"") ? b["lit color"] : ($("#color").value || "#a3006e");
+  $("#lit-tcolor").value = /^#[0-9a-f]{6}$/i.test(b?.["lit text color"]||"") ? b["lit text color"] : "#ffffff";
+  $("#lit-box").open = !!b?.["lit menu"];
 }
 
+// Settings this editor shows; everything else on the key (font size, glyph, gradient, live...) is kept as it was.
+const EDITED = ["macro", "folder", "label", "icon", "color", "text color", "key",
+                "lit menu", "lit label", "lit color", "lit text color"];
 async function saveKey() {
-  const b = {};
+  const old = S.pages[page][sel] || {};
+  const b = Object.fromEntries(Object.entries(old).filter(([k]) => !EDITED.includes(k) && !k.startsWith("_")));
+  const litMenu = $("#lit-menu").value.trim();
+  if (litMenu) {
+    b["lit menu"] = litMenu; b["lit color"] = $("#lit-color").value;
+    b["lit text color"] = $("#lit-tcolor").value;
+    const ll = $("#lit-label").value.trim(); if (ll) b["lit label"] = ll.replace(/\n/g, "\\n");
+  }
   if (kind === "macro" && $("#macro").value.trim()) b.macro = $("#macro").value.trim();
   if (kind === "folder" && $("#folder").value.trim()) b.folder = $("#folder").value.trim();
   const label = $("#label").value.trim(); if (label) b.label = label.replace(/\n/g, "\\n");

@@ -19,7 +19,7 @@ ACTIONS = [
     "pro tools", "track color", "track colour", "select tracks",
     "midi cc", "open", "quit app", "close window", "slider", "metric slot", "metric ab", "bypass open plugin", "new track preset", "toggle open plugin active", "remove open plugin", "plugin preset", "metric button",
     "plugin window", "insert plugin", "send", "output", "input", "remove inactive",
-    "open session folder", "if window", "accept dialog", "track menu", "paste", "import io settings", "set buffer size", "bounce dialog", "convert pro-q 3 to 4", "compact inserts", "toggle tce trim", "clear", "bypass plugin", "toggle plugin active",
+    "open session folder", "if window", "if menu", "accept dialog", "track menu", "paste", "import io settings", "set buffer size", "bounce dialog", "convert pro-q 3 to 4", "compact inserts", "toggle tce trim", "clear", "bypass plugin", "toggle plugin active",
     "audiosuite", "audiosuite preset", "audiosuite render",
     "save new version", "delete empty audio tracks", "bounce mix",
 ]
@@ -30,6 +30,7 @@ OPTIONS = {
     "app", "value", "channel", "port", "category", "source", "bits", "sample rate",
     "folder", "offline", "keep window", "source type", "track", "slot", "all selected", "scope", "scale",
     "name", "click bounce", "then", "else", "all", "or", "processing", "if empty", "stereo",
+    "ticked",
 }
 
 DEFAULT_TIMEOUT = 5.0        # how long to keep looking for a button/checkbox/etc.
@@ -158,7 +159,7 @@ def validate(macro: dict, library: Library | None = None) -> list[str]:
             bad = [k for k in opts if k not in OPTIONS and k not in ACTIONS]
             if bad:
                 problems.append(f"step {i}: unknown option '{bad[0]}'")
-            if action == "if window":
+            if action in ("if window", "if menu"):
                 for branch in ("then", "else"):
                     problems += [f"step {i} ({branch}) {p}" for p in
                                  validate({"steps": opts.get(branch) or []}, library)]
@@ -211,6 +212,8 @@ class Runner:
             try:
                 if action == "if window":
                     self._if_window(value, opts, macro_name, depth, label)
+                elif action == "if menu":
+                    self._if_menu(value, opts, macro_name, depth, label)
                 else:
                     self.do(action, value, opts, depth)
             except (E.NotFound, MacroError, ValueError, PTSLError, RuntimeError) as e:
@@ -251,6 +254,77 @@ class Runner:
         branch = o.get("then") if found else o.get("else")
         self.log(f"    window '{v}' {'is' if found else 'is not'} open")
         self._run_steps(branch or [], macro_name, depth, prefix=f"{label}.")
+
+    def _if_menu(self, v, o, macro_name, depth, label):
+        """if menu: Options > Solo Mode > AFL*   (ticked: true)   then: [steps]   else: [steps]
+        Runs 'then' when the menu item's tick matches 'ticked' (default: ticked)."""
+        want = str(o.get("ticked", True)).lower()
+        if want == "any":                          # ticked: any = "does this menu item exist?"
+            try:
+                item, opened = self._menu_item(v)
+                if opened:
+                    self.close_menus()
+                yes = item is not None
+            except E.NotFound:
+                yes = False
+            self.log(f"    menu '{v}' {'exists' if yes else 'does not exist'}")
+        else:
+            ticked = self.menu_ticked(v)
+            yes = ticked == (want in ("true", "yes", "on", "1"))
+            self.log(f"    menu '{v}' {'is' if ticked else 'is not'} ticked")
+        branch = o.get("then") if yes else o.get("else")
+        self._run_steps(branch or [], macro_name, depth, prefix=f"{label}.")
+
+    # Menu ticks the deck believes in, keyed by menu_key(path). The deck shares its own dict here, so
+    # a tick CHP just changed counts even if Pro Tools' closed menu hasn't caught up yet.
+    believed: dict = {}
+    menu_changes: list = []      # (menu_key, ticked or None for "flipped") recorded by menu steps
+
+    @staticmethod
+    def menu_key(v) -> str:
+        parts = v if isinstance(v, list) else [p.strip() for p in str(v).split(">")]
+        return " > ".join(E.norm(p).lower() for p in parts)
+
+    def menu_ticked(self, v, open_menus: bool = True):
+        """Is a menu item ticked? Uses what the deck believes first, then asks Pro Tools.
+        With open_menus=False, never opens a menu (returns None if it can't tell without one)."""
+        key = self.menu_key(v)
+        if key in self.believed:
+            return bool(self.believed[key])
+        item, opened = self._menu_item(v, open_menus=open_menus)
+        if item is None:
+            return None
+        ticked = bool(item.attr("AXMenuItemMarkChar"))
+        if opened:
+            self.close_menus()              # only menus this step opened itself
+        return ticked
+
+    def _menu_item(self, v, open_menus: bool = True):
+        """Find a menu bar item by path. Returns (item, whether a menu had to be opened)."""
+        parts = v if isinstance(v, list) else [p.strip() for p in str(v).split(">")]
+        app = self.app()
+        bar = app.attr("AXMenuBar")
+        if bar is None:
+            raise MacroError("Can't see Pro Tools' menu bar (is Accessibility permission on?)")
+        current, opened = bar, False
+        for i, part in enumerate(parts):
+            item = next((c for c in E.children(current) if E.name_matches(c, part)), None)
+            if item is None:
+                raise E.NotFound(f"menu item '{part}' (in {' > '.join(parts[:i]) or 'menu bar'})")
+            if i == len(parts) - 1:
+                return item, opened
+            sub = next((c for c in E.children(item) if c.attr("AXRole") == "AXMenu"), None)
+            if sub is None or not E.children(sub):
+                if not open_menus:
+                    return None, opened
+                item.perform("AXPress")      # open it so its contents appear
+                opened = True
+                self.sys.sleep(0.15)
+                sub = next((c for c in E.children(item) if c.attr("AXRole") == "AXMenu"), None)
+            if sub is None:
+                raise E.NotFound(f"submenu '{part}'")
+            current = sub
+        return None, opened
 
     # ----- helpers -----
     _target = None   # another app's bundle id for this step ("app:" option)
@@ -2242,12 +2316,19 @@ class Runner:
                 if item.attr("AXEnabled") is False:
                     raise MacroError(f"menu item '{' > '.join(parts)}' is greyed out right now")
                 want = o.get("set")
+                key = self.menu_key(parts)
                 if want is not None:
                     checked = bool(item.attr("AXMenuItemMarkChar"))
-                    if (str(want).lower() in ("on", "true", "enable")) == checked:
+                    on = str(want).lower() in ("on", "true", "enable")
+                    if on == checked:
                         self.close_menus()
+                        self.menu_changes = self.menu_changes + [(key, on)]
                         return
+                    item.perform("AXPress")
+                    self.menu_changes = self.menu_changes + [(key, on)]
+                    return
                 item.perform("AXPress")
+                self.menu_changes = self.menu_changes + [(key, None)]
                 return
             sub = next((c for c in E.children(item) if c.attr("AXRole") == "AXMenu"), None)
             if sub is None or not E.children(sub):

@@ -127,6 +127,7 @@ steps:
 | `raise window:` | Brings a Pro Tools window to the front | `raise window: Mix:` |
 | `close window:` | Closes a window with its close button | `close window: "Audio*Suite*"` |
 | `if window:` | Waits briefly (default 3 s) for a window; runs `then:` steps if it appears, else `else:` steps. `or:` lists other windows that mean "no" straight away | see below |
+| `if menu:` | Runs `then:` steps if a menu-bar item is ticked, else `else:` steps. `ticked: false` flips it; `ticked: any` asks whether the item exists at all. Uses the tick the deck believes first (see `lit menu`) | see below |
 | `accept dialog:` | If a small dialog appears within `timeout` (default 2 s), accepts it. Nothing happens otherwise | `accept dialog:` |
 | `run macro:` | Runs another macro (up to 10 deep) | `run macro: EAS Session Data` |
 | `note:` | A comment; does nothing | `note: needs the Edit window` |
@@ -139,6 +140,12 @@ steps:
   - click: OK
   else:
   - note: no fades needed
+
+- if menu: Options > Solo Mode > AFL*          # a toggle: AFL on → SIP, otherwise → AFL
+  then:
+  - menu: Options > Solo Mode > SIP*
+  else:
+  - menu: Options > Solo Mode > AFL*
 ```
 
 ### Pro Tools Scripting SDK (no window clicking)
@@ -241,7 +248,8 @@ if it can't tell, real time.
 | `modifiers:` | click at | Keys held during the click, e.g. `cmd+option` |
 | `relative to:` | click at | `window` (default), `element` or `screen` |
 | `element:` | click at | The element to measure from |
-| `then:` / `else:` / `or:` | if window | Steps to run / other windows meaning "no" |
+| `then:` / `else:` / `or:` | if window, if menu | Steps to run / other windows meaning "no" |
+| `ticked:` | if menu | `true` (default), `false`, or `any` (the item just has to exist) |
 | `track:` / `tracks:` | track steps | Which tracks (default: selected) |
 | `slot:` | insert plugin, send | Slot number, letter or `first free` |
 | `all selected:` | track steps | Written by the SoundFlow importer; accepted but has no effect (track steps already cover all selected tracks) |
@@ -275,10 +283,20 @@ Keys are numbered from 1 at top-left, left to right (an XL has 8 per row, 32 in 
 Pages other than home get a back key on key 1 automatically, and a page-title banner
 across the empty top-row keys.
 
-Deck-wide settings: `brightness`, `model`, `home`, `icon style`, `back button` (true/false),
+Deck-wide settings: `brightness`, `model`, `home`, `icon style`, `key font` (any installed font by name, for
+keys that don't set `font`), `page settings` (see below), `back button` (true/false),
 `back label`, `back color`, `back font size`, `page titles` (true/false),
 `title pattern` (`none` turns off the carpet behind titles), `additions applied`
 (kept by PT Deck; don't edit).
+
+`page settings` gives single pages their own values for `back button`, `back label`, `back color`,
+`back font size`, `page titles`, `title pattern`, `icon style` and `key font`, so one deck can mix
+plain pages with designed ones:
+
+```yaml
+page settings:
+  Main: {page titles: false, icon style: classic, key font: Futura PT Medium}
+```
 
 ### Key settings
 
@@ -295,7 +313,7 @@ Deck-wide settings: `brightness`, `model`, `home`, `icon style`, `back button` (
 | `color` | Background, e.g. `'#204060'` |
 | `text color` | Label colour (default: white or black, whichever reads better) |
 | `font size` | Label size in pixels |
-| `font` | `narrow` for the condensed font |
+| `font` | `narrow` for the condensed font, or any installed font by its Font Book name (e.g. `Futura PT Medium`). Found through macOS like an app's font menu, so Adobe Fonts and font managers work; if that exact font isn't installed, the same family with fewer words is tried (`Futura PT Medium` → `Futura PT` → `Futura Medium` → `Futura`) and the log says which was used; a name with no match at all is logged once and the standard font is used |
 | `outline` | Outline colour, or `none` (folders get one by default) |
 | `style` | Force the designed look: `command` or `send` |
 | `strip` | Text on a band along the bottom naming the tool (e.g. `BEAT DETECTIVE`) |
@@ -303,6 +321,12 @@ Deck-wide settings: `brightness`, `model`, `home`, `icon style`, `back button` (
 | `strip text color` | That band's text colour |
 | `audiosuite` | Name of the AudioSuite plug-in, for the AudioSuite look (normally found from the macro) |
 | `color bar` | `true`: track-colour stripe along the top |
+| `palette color` | A Pro Tools track-colour number (as `track color:` takes and the `colours` chart shows): the key shows that exact colour once PT Deck has read Pro Tools' palette; `color` is shown until then |
+| `gradient` | Background blended left to right through a list of colours, e.g. `['#1b3fae', '#e0242a']` (classic look) |
+| `lit menu` | A menu-bar path (`View > Clip > Name`): the key shows its lit look while that item is ticked. The deck follows ticks its own keys change straight away, and re-reads Pro Tools every few seconds |
+| `lit color` | Background while lit |
+| `lit label` | Label while lit (default: the normal label) |
+| `lit text color` | Label colour while lit |
 | `corner` | Small label top-left (live insert keys use the slot letter) |
 | `live` | Insert slot 1–10 to show live: plug-in name and state (active, bypassed, inactive, open) |
 | `live track` | Track for `live`: a name, `selected`, or `(PRINT)` (default) |
@@ -425,6 +449,13 @@ Learned the hard way; each has a workaround in the code.
   "Built-in Output 1-2 (Stereo)" before).
 - MetricAB's settings can be read but setting them is ignored, so keys click its own buttons
   at measured positions. Song names are only readable from a window picture (text recognition).
+- A tick in a closed menu can lag behind a change a key just made (seen while building CHP), so the deck
+  remembers ticks its own menu steps changed and only lets a re-read override that when the re-read itself
+  changes. Items in a `… Mode` submenu (Solo Mode) are pick-one.
+- Fonts switched on through Adobe Fonts live in a hidden Creative Cloud folder under meaningless file names, so
+  key fonts are looked up through macOS (CoreText) first, then by scanning the font folders.
+- Sending a character with Option held can type a different character (Option + minus types "–") instead
+  of triggering the shortcut; PT Deck's `press:` sends physical key codes, which is right.
 - The PTSL connection can go stale after opening a session or restarting Pro Tools;
   read-only commands reconnect and retry.
 - PTSL has no commands for plug-ins, inserts or I/O lists. Its SaveSessionAs crashes Pro Tools

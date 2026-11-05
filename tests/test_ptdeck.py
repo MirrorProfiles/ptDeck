@@ -2484,10 +2484,12 @@ def test_short_names_drop_archetype_and_shorten_renaissance():
 def test_short_names_follow_the_owners_rules(monkeypatch):
     from ptdeck import plugins as P
     monkeypatch.setattr(P, "scan", lambda folder=None: [{"name": n, "file": "", "vendor": ""} for n in
-                        ("NA LoFi", "Unfiltered Audio LoFi", "British Class A Compressor", "British Class A Equalizer")])
+                        ("LoFi", "NA LoFi", "British Class A Compressor", "British Class A Equalizer",
+                         "UAD Empirical Labs FATSO Jr", "UADx Empirical Labs Fatso Jr")])
     monkeypatch.setattr(P, "_clashes", None)
-    assert P.short_name("NA LoFi") == "NA LoFi"                       # two plug-ins would read 'LoFi': stay whole
-    assert P.short_name("Unfiltered Audio LoFi") == "Unfiltered Audio LoFi"
+    assert P.short_name("NA LoFi") == "NA LoFi"                       # would read like plain 'LoFi': stays whole
+    assert P.short_name("UADx Empirical Labs Fatso Jr") == "Empirical Labs Fatso Jr"     # UADx wins the tie...
+    assert P.short_name("UAD Empirical Labs FATSO Jr") == "UAD Empirical Labs FATSO Jr"  # ...the older one stays whole
     assert P.short_name("British Class A Compressor") == "British Class A Comp"      # long: Comp and EQ
     assert P.short_name("British Class A Equalizer") == "British Class A EQ"
     assert P.short_name("Capitol Compressor") == "Capitol Compressor"              # short: left alone
@@ -2498,5 +2500,11 @@ def test_short_names_follow_the_owners_rules(monkeypatch):
     assert P.short_name("bx_townhouse Buss Compressor") == "Townhouse Buss Comp"   # long bx_ name: brand off
     assert P.short_name("bx_console N") == "Neve VXS"
     assert P.short_name("Chandler Limited Zener Limiter") == "Chandler Zener Limiter"
-    assert P.short_name("Abbey Road Chambers") == "AR Chambers"
+    assert P.short_name("Abbey Road Chambers") == "Abbey Road Chambers"            # AR only on long names
+    assert P.short_name("Abbey Road TG Mastering Chain") == "AR TG Mastering Chain"
+    assert P.short_name("Tube-Tech Blue Tone") == "Tube-Tech Blue Tone"
+    assert P.short_name("Canvas Audio - Honeycomb Bass OD") == "Honeycomb Bass OD"
+    assert P.short_name("Mesa Boogie Mark IIC+ Suite") == "Mesa Boogie Mark IIC+"
+    assert P.short_name("Morgan Amps Suite") == "Morgan Amps Suite"
+    assert P.short_name("Harmonics Analog Saturation Processor") == "Harmonics"
     assert P.short_name("LTL Chop Shop EQ") == "Chop Shop EQ"

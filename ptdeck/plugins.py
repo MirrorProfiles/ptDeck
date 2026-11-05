@@ -57,6 +57,7 @@ VENDOR_LOOK = {
     "klevgrand": ("Klevgrand", "#7e5109"), "toguaudioline": ("TAL", "#633974"),
     "louderthanliftoff": ("LTL", "#1f618d"), "bertom": ("Bertom", "#5b2c6f"), "bettermaker": ("Bettermaker", "#1b4f72"),
     "submissionaudio": ("Submission Audio", "#8f2aab"), "cradle": ("Cradle", "#6e2c00"),
+    "canvasaudio": ("Canvas Audio", "#ab2a55"),
     "universal audio (uadx)": ("UA", "#2e86c1"), "tube-tech": ("Softube", "#a0763b"),
 }
 # Pro Tools' plug-in categories -> the colour of the bar under a plug-in's name on a live key.
@@ -68,13 +69,18 @@ CATEGORY_LOOK = {
 }
 CATEGORIES_FILE = "plugin-categories.yaml"    # in the deck folder: plug-in name -> category, learnt from Pro Tools
 
-VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "Archetype ", "LTL ",
+# Earlier prefixes win a tie: if two plug-ins would read the same, the one with the earlier prefix
+# gets the short name ('UADx Empirical Labs Fatso Jr') and the other stays whole ('UAD ... FATSO Jr').
+VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "Archetype ", "LTL ", "Canvas Audio - ",
                    "iZotope ", "Waves ", "Softube ", "Valhalla", "Unfiltered Audio ", "STL ", "TDR ", "NA ",
-                   "Oxford ", "Lindell ", "Tube-Tech ")
-NAME_ALIASES = {"bx_console n": "Neve VXS", "amplified instrument processor": "AIP"}   # as the owner likes them
-ALWAYS_SHORT = {"renaissance": "Ren", "abbey road": "AR"}            # short forms used whatever the length
+                   "Oxford ", "Lindell ")
+NAME_ALIASES = {"bx_console n": "Neve VXS", "amplified instrument processor": "AIP",   # as the owner likes them
+                "harmonics analog saturation processor": "Harmonics"}
+ALWAYS_SHORT = {"renaissance": "Ren"}                                # short forms used whatever the length
 LONG_SHORT = {"compressor": "Comp", "equalizer": "EQ"}               # ...and these once a name is 3+ words
+LONGER_SHORT = {"abbey road": "AR"}                                  # ...and these once a name is 4+ words
 DROP_WORDS = {"limited"}                                             # dropped from a name of 3+ words
+DROP_TAIL_LONG = {"suite"}                                           # dropped from the end of a name of 4+ words
 VERSION = re.compile(r"(?i)^v\d$")                                   # 'V2', 'v6' tags come off the end (not a V76)
 
 UA_UPPER = {"ua", "ssl", "la", "api", "emt", "eq", "eqp", "meq", "hlf", "atr", "vt", "dbx", "vog", "b3", "a800"}
@@ -265,23 +271,43 @@ def _cut(name: str, vendor: str = "") -> str:
         out = out[:1].upper() + out[1:]
     for long, short in ALWAYS_SHORT.items():
         out = re.sub(r"(?i)\b" + re.escape(long) + r"\b", short, out)
+    if len(out.split()) >= 4:
+        for long, short in LONGER_SHORT.items():
+            out = re.sub(r"(?i)\b" + re.escape(long) + r"\b", short, out)
     words = out.split()
     if len(words) > 1 and VERSION.match(words[-1]):
+        words.pop()
+    if len(words) >= 4 and words[-1].lower() in DROP_TAIL_LONG:
         words.pop()
     if len(words) >= 3:
         words = [LONG_SHORT.get(w.lower(), w) for w in words if w.lower() not in DROP_WORDS]
     return " ".join(words) or str(name)
 
 
+def _prefix_rank(name: str) -> int:
+    low = str(name).lower()
+    return next((i for i, pre in enumerate(VENDOR_PREFIXES) if low.startswith(pre.lower())), len(VENDOR_PREFIXES))
+
+
 def _short_clashes() -> set:
-    """Installed names whose short form would match another plug-in's, so they stay as they are.
-    Read once."""
+    """Installed names that stay whole because their short form would match another plug-in's.
+    In each such group the name with the earliest prefix (VENDOR_PREFIXES) still gets shortened,
+    if exactly one has it; the rest stay whole. Read once."""
     global _clashes
     if _clashes is None:
         groups: dict = {}
         for p in scan():
             groups.setdefault(_cut(p["name"]).lower(), set()).add(p["name"].lower())
-        _clashes = {n for g in groups.values() if len(g) > 1 for n in g}
+        whole = set()
+        for g in groups.values():
+            if len(g) < 2:
+                continue
+            ranks = sorted((_prefix_rank(n), n) for n in g)
+            already = any(_cut(n).lower() == n for n in g)      # one already reads that way: nobody may join it
+            winner = (ranks[0][1] if not already and ranks[0][0] < len(VENDOR_PREFIXES)
+                      and ranks[0][0] < ranks[1][0] else None)
+            whole |= {n for n in g if n != winner}
+        _clashes = whole
     return _clashes
 
 

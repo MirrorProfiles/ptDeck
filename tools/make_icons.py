@@ -227,19 +227,25 @@ def track_colours_folder():
     img.save(OUT / "eas-track-colours.png")
 
 
-def folder_frame(accent, title, art):
+def folder_frame(accent, title, art, picture=False):
     """A folder key: a filled tab and frame in the folder's colour on a dark key, a picture of
-    what's inside, the name in tall capitals in the same colour (white if the colour is too dark)."""
+    what's inside, the name in tall capitals in the same colour (white if the colour is too dark).
+    picture=True gives a photo or logo a taller area (from the tab to the name) than drawn art."""
     img = look.gradient(S, "#23262b", "#17191c")
     d = ImageDraw.Draw(img)
     w = max(2, S // 40)
     tab_w, tab_h, top = S * 0.42, S * 0.09, S * 0.16
     d.rounded_rectangle([w, w, tab_w, top + tab_h], radius=S * 0.03, fill=accent)
     d.rounded_rectangle([w, top, S - w, S - w], radius=S * 0.04, fill="#1d2024", outline=accent, width=w)
-    art(d, img, (S * 0.12, top + tab_h + S * 0.03, S * 0.88, S * 0.63))
+    if picture:
+        art(d, img, (S * 0.12, top + tab_h + S * 0.015, S * 0.88, S * 0.685))
+        name_top, name_h, fracs = S * 0.695, S * 0.26, (0.2, 0.17, 0.15, 0.125)
+    else:
+        art(d, img, (S * 0.12, top + tab_h + S * 0.03, S * 0.88, S * 0.63))
+        name_top, name_h, fracs = S * 0.65, S * 0.28, (0.2, 0.17, 0.15)
     d = ImageDraw.Draw(img)
     name_col = accent if look.luminance(accent) > 0.12 else "#ffffff"
-    label(img, title, S * 0.65, S * 0.28, name_col, kind="folder", frac=(0.2, 0.17, 0.15))
+    label(img, title, name_top, name_h, name_col, kind="folder", frac=fracs)
     return img
 
 
@@ -506,10 +512,10 @@ def lodge_title():
 
 if __name__ == "__main__":
     detective = beat_detective()
-    folder_frame("#c9b27a", "BEAT DETECTIVE", art_picture(detective)).save(OUT / "folder-beat-detective.png")
+    folder_frame("#c9b27a", "BEAT DETECTIVE", art_picture(detective), picture=True).save(OUT / "folder-beat-detective.png")
     folder_frame("#c8ccd2", "TRACK COLOURS", art_swatches).save(OUT / "folder-track-colours.png")
-    folder_frame("#c9b9a2", "AIRPODS", art_picture("airpods.png")).save(OUT / "folder-airpods.png")
-    folder_frame("#d9894f", "METRIC A/B", art_picture("metric-ab.png")).save(OUT / "folder-metric-ab.png")
+    folder_frame("#c9b9a2", "AIRPODS", art_picture("airpods.png"), picture=True).save(OUT / "folder-airpods.png")
+    folder_frame("#d9894f", "METRIC A/B", art_picture("metric-ab.png"), picture=True).save(OUT / "folder-metric-ab.png")
     route("[DRUMS]", "route-drums.png")
     route("(PRINT)", "route-print.png")
     renumber_markers()

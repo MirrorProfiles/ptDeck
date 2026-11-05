@@ -2417,10 +2417,43 @@ def test_plugin_captions_on_live_keys(tmp_path, monkeypatch):
     slot = D.layout(cfg, "Home", 32)[1]
     assert slot.get("_captions") is True
     b = D.live_button(slot, ("FabFilter Pro-Q 4", "active", "#3366cc"), tmp_path)
-    assert b["label"] == "Pro-Q 4" and b["_caption"] == "FabFilter" and b["_accent"] == "#c0392b"
+    assert b["label"] == "Pro-Q 4" and b["_caption"] == "FabFilter"
+    assert b["_accent"] == "#2e86c1"                          # EQ: Pro Tools' category colours the bar
     img = D.render(b, 96, tmp_path)
-    assert img.getpixel((48, 94)) == (192, 57, 43)            # the maker's bar along the bottom
+    assert img.getpixel((48, 94)) == (46, 134, 193)
     unknown = D.live_button(slot, ("Mystery Box", "active", None), tmp_path)
     assert unknown["label"] == "Mystery Box" and "_caption" not in unknown
     empty = D.live_button(slot, ("", "", None), tmp_path)
     assert empty["label"] == "empty"
+
+
+# ---------- Pro Tools' plug-in categories ----------
+
+def test_categories_learnt_from_pro_tools_then_guessed_from_the_name(tmp_path):
+    from ptdeck import plugins as P
+    assert P.category_of("FabFilter Pro-Q 4") == "EQ" and P.category_of("H-Delay") == "Delay"
+    assert P.category_of("Renaissance Axx") is None and P.category_colour(None) is None
+    f = P.save_categories(tmp_path, {"Dynamics": ["Renaissance Axx", "Pro-C 2"], "Reverb": ["ValhallaVintageVerb"]})
+    assert f == tmp_path / "plugin-categories.yaml"
+    assert P.category_of("Renaissance Axx", tmp_path) == "Dynamics"        # learnt beats the guess
+    assert P.category_of("Valhalla VintageVerb", tmp_path) == "Reverb"     # spacing doesn't matter
+    assert P.category_of("Mystery Box", tmp_path) is None
+    P.save_categories(tmp_path, {"Dynamics": ["Pro-C 2", "Smack"]})       # another read: merged, nothing lost
+    assert P.category_of("Renaissance Axx", tmp_path) == "Dynamics" and P.category_of("Smack", tmp_path) == "Dynamics"
+    assert P.category_colour("EQ") == "#2e86c1"
+
+
+def test_learn_categories_reads_the_insert_menu(tmp_path):
+    gtr = header("Gtr", inserts={"A": ("", "unassigned")})
+    app, _ = edit_app(gtr)
+    menu = plugin_menu(("EQ", ["Pro-Q 4", "Pro-Q 3 (Stereo)"]), ("Dynamics", ["Pro-C 2"]))
+    # by Category and Manufacturer: one level deeper under a category
+    menu.kids[1].kids[0].kids.append(El("AXMenuItem", "Reverb", [El("AXMenu", None, [
+        El("AXMenuItem", "Valhalla DSP", [El("AXMenu", None, [El("AXMenuItem", "ValhallaRoom")])]),
+        El("AXMenuItem", "search...")])]))
+    sel_a = E.find_one(gtr, "button", "Insert selector A")
+    menu_on_press(app, sel_a, menu)
+    sysm = TrackSys(app, ["Gtr"])
+    sysm._pt.tracks = lambda which="selected": ["Gtr"]
+    found = Runner(sysm, lib_with(tmp_path), log=lambda m: None).learn_categories()
+    assert found == {"EQ": ["Pro-Q 3", "Pro-Q 4"], "Dynamics": ["Pro-C 2"], "Reverb": ["ValhallaRoom"]}

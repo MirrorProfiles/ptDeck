@@ -1319,6 +1319,62 @@ class Runner:
             self.choose_from(sel, path, prefer="plug-in")
             self.sys.sleep(0.3)
 
+    def learn_categories(self, track=None) -> dict:
+        """Read Pro Tools' plug-in categories from an insert selector's menu: {category: [names]}.
+        Needs Pro Tools' plug-in menus organised by Category (or Category and Manufacturer:
+        Setup > Preferences > Display). Uses the first track (or 'track') and its insert A."""
+        names = self.sys.ptsl().tracks("all") if not track else [track]
+        if not names:
+            raise PTSLError("open a session with at least one track first")
+        header = self.track_header(names[0], "Inserts A-E")
+        sel, _ = self.slot_buttons(header, "Insert", "A")
+        root = self.open_menu(sel)
+        if root is None:
+            raise E.NotFound("the insert menu didn't open")
+        found: dict = {}
+        try:
+            top = self._walk(root, ["plug-in"]) or self._walk(root, ["multichannel plug-in"]) \
+                or self._walk(root, ["multi-mono plug-in"])
+            if top is None:
+                raise E.NotFound("the 'plug-in' submenu in the insert menu")
+            cats = self._submenu_items(top)
+            for cat in cats:
+                title = (E.labels(cat) or [""])[0].strip()
+                if not title or self._submenu(cat) is None and not E.children(cat):
+                    continue
+                items = self._submenu_items(cat)
+                if not items:
+                    continue
+                leaves = []
+                for it in items:                      # by Category and Manufacturer: one level deeper
+                    inner = self._submenu_items(it)
+                    for leaf in (inner or [it]):
+                        lab = (E.labels(leaf) or [""])[0].strip()
+                        lab = re.sub(r"(?i)\s+\((stereo|mono|multichannel)\)$", "", lab)
+                        if lab and not lab.lower().startswith("search"):
+                            leaves.append(lab)
+                if leaves:
+                    found[title] = sorted(set(leaves))
+                    self.log(f"    {title}: {len(leaves)} plug-ins")
+        finally:
+            self.close_menus()
+            self.sys.sleep(0.1)
+            self.close_menus()
+        return found
+
+    def _submenu_items(self, item) -> list:
+        """The items of a menu item's submenu, opening it first if it's still empty."""
+        sub = self._submenu(item)
+        if sub is None:
+            return []
+        if not E.children(sub):
+            item.perform("AXPress")
+            self.sys.sleep(0.15)
+            sub = self._submenu(item)
+            if sub is None:
+                return []
+        return [c for c in E.children(sub) if c.attr("AXRole") == "AXMenuItem"]
+
     # Toolbar button name -> Pro Tools Scripting SDK tool (for putting a tool back).
     TOOL_IDS = {"Selector tool": "ET_Selector", "Grabber tool (Time)": "ET_GrabberTime",
                 "Grabber tool (Separation)": "ET_GrabberSeparation", "Grabber tool (Object)": "ET_GrabberObject",

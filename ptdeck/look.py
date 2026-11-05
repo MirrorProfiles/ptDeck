@@ -730,10 +730,9 @@ def render_designed(button: dict, size: int, base) -> Image.Image:
         fg = text_colour(button, bg)
         accent = button.get("outline") or (fg if bg != FOLDER_BG else "#d8d8d8")
         w = max(2, S // 40)
-        tab_w, tab_h, top = S * 0.42, S * 0.09, S * 0.16          # folder outline with a tab
-        pts = [(w, top), (w, w + tab_h * 0.2), (tab_w - tab_h, w + tab_h * 0.2), (tab_w, top - tab_h * 0.1),
-               (S - w, top), (S - w, S - w), (w, S - w), (w, top)]
-        d.line(pts, fill=accent, width=w, joint="curve")
+        tab_w, tab_h, top = S * 0.42, S * 0.09, S * 0.16          # a filled folder tab and frame
+        d.rounded_rectangle([w, w, tab_w, top + tab_h], radius=S * 0.03, fill=accent)
+        d.rounded_rectangle([w, top, S - w, S - w], radius=S * 0.04, outline=accent, width=w)
         text = (label or str(button["folder"])).upper()
         fit = (_fit(d, text, "folder", S - 2 * pad, S - top - pad * 1.5, 4, S)
                or _fit(d, text, "command", S - 2 * pad, S - top - pad, 5, S))

@@ -448,12 +448,15 @@ def live_button(button: dict, info, base: Path) -> dict:
             out["icon"] = icon
         elif style == "empty":
             out["label"] = "empty"
-        elif out.get("_captions"):           # 'plug-in captions': short name, maker and its colour
-            from .plugins import vendor_of, short_name
+        elif out.get("_captions"):           # 'plug-in captions': short name, maker, category colour
+            from .plugins import vendor_of, short_name, category_of, category_colour
             vendor = vendor_of(name)
             out["label"] = short_name(name, vendor[0] if vendor else "")
             if vendor:
-                out["_caption"], out["_accent"] = vendor
+                out["_caption"] = vendor[0]
+            colour = category_colour(category_of(name, base))
+            if colour:
+                out["_accent"] = colour
         else:
             out["label"] = name
         if state.startswith("open"):

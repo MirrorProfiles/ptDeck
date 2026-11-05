@@ -306,9 +306,12 @@ changing it so the folder pictures match.
 
 `plug-in captions: true` makes live insert keys show a plug-in's short name ("Pro-Q 4", "1176 Rev A":
 the maker's prefix and a long generic tail dropped) with the maker underneath and a thin bar in the
-maker's colour, so one maker's plug-ins look alike. The maker comes from the plug-in bundle's
-identifier (`ptdeck/plugins.py`, `VENDOR_LOOK` for the names and colours; others get a colour from
-their name). A picture set for the plug-in in the Manager still wins. Off unless the deck asks for it.
+colour of its Pro Tools category (EQ blue, Dynamics red, Reverb green, Delay teal, Modulation purple,
+Harmonic orange, Pitch Shift yellow, Noise Reduction grey-blue...: `CATEGORY_LOOK` in
+`ptdeck/plugins.py`). The maker comes from the plug-in bundle's identifier (`VENDOR_LOOK` for names).
+The category comes from `my-deck/plugin-categories.yaml`, written by `ptdeck learn-categories`
+(section 10) and editable by hand, else a guess from the name (`CATEGORY_WORDS`); no bar if neither
+knows. A picture set for the plug-in in the Manager still wins. Off unless the deck asks for it.
 
 `page settings` gives single pages their own values for `back button`, `back label`, `back color`,
 `back font size`, `page titles`, `title pattern`, `icon style` and `key font`, so one deck can mix
@@ -494,6 +497,7 @@ Learned the hard way; each has a workaround in the code.
   list comes from `/Applications/Waves/Plug-Ins V*`.
 - Only one program can drive the Stream Deck. SoundFlow's helper keeps running after its
   window is closed, and it also queries Pro Tools; quit it fully.
+- Nothing on disk says which Pro Tools category a plug-in is in (the AAX descriptor sets it in code), so `learn-categories` reads the insert menu's category submenus by Accessibility, one category at a time.
 - PTSL can't colour clips (there is no SetClipColor). `clip color:` selects them with PTSL's SelectAllClipsOnTrack and presses a swatch in the Color Palette window with its target pop-up (`ColorPaletteSelectorView`) on "Clips in Tracks". The window's table ("Color Palette View") holds 3 AXRows of 23 swatch buttons, numbered across then down, and also lists AXColumns, which are ignored.
 - macOS (26) hides the menu bar icon of an app whose program hands over to Python (`exec python`): the icon is made but never shown, and the app isn't listed in System Settings > Menu Bar. So `make-app` compiles a small program into PT Deck.app that runs Python inside the app (needs Apple's command line tools, which Homebrew installs); if it can't, the app falls back to the shell starter. The program runs PT Deck in its own process, never handing over with exec (that loses the icon too), and restarts reopen the app (`open -n`) instead of exec'ing (`PTDECK_LAUNCHER` marks this mode), and permissions are then listed as "PT Deck", not "python3".
 
@@ -519,6 +523,7 @@ Run from the PT Deck folder as `.venv/bin/python -m ptdeck <command>`.
 | `probe-menu` / `probe-tools` / `probe-plugin` | Describe an open pop-up menu / the toolbar tools / a plug-in window |
 | `metric-names` | Reads MetricAB's song names now |
 | `colours` | Shows Pro Tools' track colours with their numbers |
+| `learn-categories` | Reads Pro Tools' plug-in categories from a track's insert menu into `my-deck/plugin-categories.yaml` (set Setup > Preferences > Display > Organize Plug-in Menus By to Category, or Category and Manufacturer, first; `--track` picks the track) |
 | `test-pro-tools` | Checks the SDK connection (open session, selected tracks) |
 | `pro-tools` | Sends one SDK command |
 | `install-update file.zip` | Installs a PT Deck download |

@@ -57,6 +57,30 @@ VENDOR_LOOK = {
     "klevgrand": ("Klevgrand", "#7e5109"), "toguaudioline": ("TAL", "#633974"),
     "universal audio (uadx)": ("UA", "#2e86c1"), "tube-tech": ("Softube", "#a0763b"),
 }
+# Pro Tools' plug-in categories -> the colour of the bar under a plug-in's name on a live key.
+CATEGORY_LOOK = {
+    "EQ": "#2e86c1", "Dynamics": "#c0392b", "Reverb": "#27ae60", "Delay": "#16a085",
+    "Modulation": "#8e44ad", "Harmonic": "#e67e22", "Pitch Shift": "#d4ac0d", "Noise Reduction": "#5d6d7e",
+    "Dither": "#7f8c8d", "Sound Field": "#1abc9c", "Instrument": "#a04000", "Effect": "#2874a6",
+    "Other": "#626567", "Hardware": "#4a235a", "Wrapped Plug-ins": "#626567",
+}
+# A guess from the name, for plug-ins 'learn-categories' hasn't seen (first match wins).
+CATEGORY_WORDS = [
+    ("Noise Reduction", r"\brx\b|de-?click|de-?noise|de-?hum|de-?crackle|de-?reverb|de-?ess|mouth|breath|noise|restor|spectral"),
+    ("Pitch Shift", r"pitch|tune\b|auto-?tune|harmoni|vocalign|melodyne|octave|repitch"),
+    ("Dynamics", r"compress|limit|\bcomp\b|1176|la-?2a|la-?3a|\bdbx\b|gate|expand|transient|maxim|opto|\bvca\b|\bfet\b|pro-c|pro-l|pro-g|pro-mb|levell|smack|dynam"),
+    ("EQ", r"\beq\b|equali[sz]er|pro-q|filter|tilt|pultec|channel strip|\bconsole\b|\bq\d\b"),
+    ("Reverb", r"verb|plate|chamber|hall\b|spring|\broom|convolution|\bir\b"),
+    ("Delay", r"delay|echo|slap"),
+    ("Modulation", r"chorus|flang|phaser|tremolo|vibrato|rotary|leslie|modul|ensemble|auto-?pan|doubler"),
+    ("Harmonic", r"saturat|distort|tube|tape|overdrive|fuzz|drive|clip|exciter|enhanc|preamp|\bamp\b|cab|pedal|lo-?fi|decapit|archetype|\bnam\b|tonex|amplitube|ampeg|archetype"),
+    ("Sound Field", r"width|stereo|mono|imager|spatial|panner|binaural|atmos"),
+    ("Dither", r"dither"),
+    ("Instrument", r"drum|piano|synth|kontakt|keys\b|sampler|player|xpand|boom|vacuum|structure|superior|addictive|trilian|omnisphere|serum|battery|\bv\d?$"),
+    ("Other", r"meter|analy|metric|gain|trim|util|scope|phase|align|lufs|loudness|correlation|spectrum|tuner"),
+]
+CATEGORIES_FILE = "plugin-categories.yaml"    # in the deck folder: plug-in name -> category, learnt from Pro Tools
+
 VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "bx_", "iZotope ", "Waves ", "Softube ", "Valhalla",
                    "Unfiltered Audio ", "STL ", "TDR ", "NA ", "Oxford ", "Lindell ", "Tube-Tech ")
 GENERIC_TAIL = {"compressor", "equalizer", "eq", "limiter", "preamp", "and", "plug-in", "plugin", "processor"}
@@ -164,6 +188,77 @@ def vendor_of(name: str, folder: Path | None = None):
     hue = int(hashlib.md5(label.lower().encode()).hexdigest(), 16) % 360 / 360
     r, g, b = colorsys.hls_to_rgb(hue, 0.42, 0.6)
     return label, "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
+
+
+_learnt: dict | None = None
+
+
+def learnt_categories(base) -> dict:
+    """Plug-in name -> Pro Tools category, from the deck's plugin-categories.yaml ('ptdeck learn-categories')."""
+    global _learnt
+    import yaml
+    f = Path(base) / CATEGORIES_FILE
+    try:
+        stamp = f.stat().st_mtime
+    except OSError:
+        return {}
+    if _learnt is None or _learnt.get("_stamp") != stamp:
+        try:
+            data = yaml.safe_load(f.read_text(encoding="utf-8")) or {}
+        except (OSError, ValueError, yaml.YAMLError):
+            data = {}
+        table = {}
+        for cat, names in (data.get("categories") or {}).items():
+            for n in names or []:
+                table[str(n).lower()] = str(cat)
+        _learnt = {"_stamp": stamp, "table": table}
+    return _learnt["table"]
+
+
+def category_of(name: str, base=None) -> str | None:
+    """A plug-in's Pro Tools category: what 'learn-categories' read from Pro Tools' insert menu
+    if it has, else a guess from the name; None if neither says."""
+    if not name:
+        return None
+    if base is not None:
+        table = learnt_categories(base)
+        hit = table.get(name.lower())
+        if hit is None:
+            squashed = re.sub(r"[^a-z0-9]+", "", name.lower())
+            hit = next((c for n, c in table.items() if re.sub(r"[^a-z0-9]+", "", n) == squashed), None)
+        if hit is None:
+            hit = next((c for n, c in table.items() if same_plugin(n, name)), None)
+        if hit:
+            return hit
+    for cat, pat in CATEGORY_WORDS:
+        if re.search(pat, name, re.I):
+            return cat
+    return None
+
+
+def category_colour(category: str | None) -> str | None:
+    return CATEGORY_LOOK.get(category) if category else None
+
+
+def save_categories(base, found: dict) -> Path:
+    """Write plugin-categories.yaml from {category: [plug-in names]}, keeping categories already
+    there that this read didn't see (e.g. learnt on another track type)."""
+    import yaml
+    f = Path(base) / CATEGORIES_FILE
+    old = {}
+    try:
+        old = (yaml.safe_load(f.read_text(encoding="utf-8")) or {}).get("categories") or {}
+    except (OSError, ValueError, yaml.YAMLError):
+        pass
+    merged = {k: sorted(set(v or [])) for k, v in old.items()}
+    for cat, names in found.items():
+        merged[cat] = sorted(set(merged.get(cat, [])) | set(names))
+    f.write_text("# Pro Tools' plug-in categories, read from the insert menu by 'ptdeck learn-categories'.\n"
+                 "# Live insert keys colour their bar by these. Edit freely; re-run to refresh.\n"
+                 + yaml.safe_dump({"categories": merged}, allow_unicode=True, sort_keys=True), encoding="utf-8")
+    global _learnt
+    _learnt = None
+    return f
 
 
 def short_name(name: str, vendor: str = "") -> str:

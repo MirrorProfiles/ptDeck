@@ -765,6 +765,21 @@ def cmd_inspect(a):
     show(w, 0)
 
 
+def cmd_learn_categories(a):
+    """Read Pro Tools' plug-in categories from the insert menu into my-deck/plugin-categories.yaml."""
+    from .plugins import save_categories
+    s = mac_system()
+    runner = Runner(s, Library(BASE / "macros"), log=print)
+    print("Reading the insert menu (Pro Tools' plug-in menus must be organised by Category, "
+          "or Category and Manufacturer: Setup > Preferences > Display)...")
+    found = runner.learn_categories(a.track)
+    if not found:
+        sys.exit("No categories found. Is the plug-in menu organised by Category?")
+    f = save_categories(BASE, found)
+    total = sum(len(v) for v in found.values())
+    print(f"Saved {total} plug-ins in {len(found)} categories to {f}")
+
+
 def cmd_colours(a):
     """Save a numbered chart of Pro Tools' track colours."""
     from PIL import Image, ImageDraw
@@ -850,6 +865,8 @@ def main(argv=None):
     ins.add_argument("window", nargs="?")
     ins.add_argument("--depth", type=int, default=8)
     sub.add_parser("colours", help="show Pro Tools' track colours with their numbers")
+    lc = sub.add_parser("learn-categories", help="read Pro Tools' plug-in categories from the insert menu")
+    lc.add_argument("--track", default=None, help="the track whose insert A to open (default: the first)")
     sub.add_parser("test-pro-tools", help="check the scripting connection to Pro Tools")
     pc = sub.add_parser("pro-tools", help="send a Pro Tools Scripting SDK command")
     pc.add_argument("command")
@@ -861,7 +878,7 @@ def main(argv=None):
     try:
         return {"start": cmd_start, "manager": cmd_manager, "run": cmd_run, "import": cmd_import, "check": cmd_check,
                 "list": cmd_list, "update": cmd_update, "preview": cmd_preview, "rename": cmd_rename, "pick": cmd_pick,
-                "inspect": cmd_inspect, "probe-menu": cmd_probe_menu, "probe-tools": cmd_probe_tools, "probe-plugin": cmd_probe_plugin, "metric-names": cmd_metric_names, "install-update": cmd_install_update, "menubar": cmd_menubar, "make-app": cmd_make_app, "colours": cmd_colours, "test-pro-tools": cmd_test_pro_tools,
+                "inspect": cmd_inspect, "probe-menu": cmd_probe_menu, "probe-tools": cmd_probe_tools, "probe-plugin": cmd_probe_plugin, "metric-names": cmd_metric_names, "install-update": cmd_install_update, "menubar": cmd_menubar, "make-app": cmd_make_app, "colours": cmd_colours, "learn-categories": cmd_learn_categories, "test-pro-tools": cmd_test_pro_tools,
                 "pro-tools": cmd_pro_tools}[a.cmd](a) or 0
     except Exception as e:  # noqa: BLE001 - friendly message instead of a traceback
         log(f"✗ {e}")

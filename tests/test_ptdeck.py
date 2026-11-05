@@ -2356,3 +2356,71 @@ def test_log_rolls_over_and_app_log_is_trimmed(tmp_path, monkeypatch):
     assert app.stat().st_size == size
     M.trim_log(app, keep=20, limit=size - 1)
     assert app.read_text() == "line 98\nline 99\n"            # last whole lines, in place
+
+
+# ---------- a deck's own fonts, and plug-in captions on live keys ----------
+
+def test_deck_fonts_setting_changes_every_kind_and_leaves_other_decks_alone(monkeypatch):
+    from ptdeck import look
+    from PIL import ImageFont
+    look.set_fonts(None)
+    barlow = look.font("command", 20)
+    assert "Barlow" in barlow.getname()[0]
+    monkeypatch.setattr(D, "find_font", lambda name: ("/System/Library/Fonts/Supplemental/Arial.ttf", 0)
+                        if name == "Fancy" else None)
+    look.set_fonts("Fancy")                                   # one name: every kind
+    assert look.chosen_fonts == {k: "Fancy" for k in look.KINDS}
+    assert look.font("folder", 20).getname()[0] == "Arial"
+    assert D.font(20).getname()[0] == "Arial"                 # plain labels follow too
+    look.set_fonts({"folder": "Fancy", "small": "Nope"})      # per kind; a missing one keeps Barlow
+    assert look.font("folder", 20).getname()[0] == "Arial"
+    assert "Barlow" in look.font("command", 20).getname()[0]
+    assert "Barlow" in look.font("small", 20).getname()[0] and "Nope" in D.missing_fonts
+    cfg = {"home": "Home", "pages": {"Home": [{"key": 1, "label": "x", "macro": "m"}]}}
+    D.layout(cfg, "Home", 32)                                 # a deck without the setting: Barlow again
+    assert look.chosen_fonts == {} and "Barlow" in look.font("folder", 20).getname()[0]
+
+
+def test_vendor_and_short_name_from_the_plugin_bundles(tmp_path):
+    from ptdeck import plugins as P
+    import plistlib
+    def bundle(name, ident):
+        b = tmp_path / f"{name}.aaxplugin" / "Contents"
+        b.mkdir(parents=True)
+        (b / "Info.plist").write_bytes(plistlib.dumps({"CFBundleIdentifier": ident}))
+    bundle("FabFilter Pro-Q 4", "com.fabfilter.Pro-Q.AAX.4")
+    bundle("ValhallaVintageVerb", "com.valhalladsp.vintageverb")
+    bundle("Obscure Thing", "com.someshop.thing")
+    bundle("uaudio_1176_rev_a", "com.uaudio.1176")
+    assert P.vendor_of("Pro-Q 4", tmp_path) == ("FabFilter", "#c0392b")
+    assert P.vendor_of("Valhalla VintageVerb", tmp_path) == ("Valhalla", "#27ae60")
+    name, colour = P.vendor_of("Obscure Thing", tmp_path)
+    assert name == "Someshop" and colour.startswith("#") and len(colour) == 7
+    assert P.vendor_of("Nothing Like It", tmp_path) is None
+    assert P.short_name("UADx 1176 Rev A Compressor", "UA") == "1176 Rev A"
+    assert P.short_name("FabFilter Pro-Q 4", "FabFilter") == "Pro-Q 4"
+    assert P.short_name("bx_console SSL 9000 J") == "SSL 9000 J"
+    assert P.short_name("UADx Neve 1073 Preamp and EQ") == "Neve 1073"
+    assert P.short_name("SSL Native Channel Strip 2", "SSL") == "SSL Native Channel Strip 2"
+    assert P.short_name("Valhalla VintageVerb", "Valhalla") == "VintageVerb"
+    assert P.short_name("EQ", "") == "EQ"
+
+
+def test_plugin_captions_on_live_keys(tmp_path, monkeypatch):
+    from ptdeck import plugins as P
+    monkeypatch.setattr(P, "vendor_of", lambda name, folder=None: ("FabFilter", "#c0392b") if "Pro-Q" in name else None)
+    (tmp_path / "icons").mkdir()
+    key = {"key": 2, "live": 3}
+    plain = D.live_button(key, ("FabFilter Pro-Q 4", "active", "#3366cc"), tmp_path)
+    assert plain["label"] == "FabFilter Pro-Q 4" and "_caption" not in plain
+    cfg = {"home": "Home", "plug-in captions": True, "pages": {"Home": [key]}}
+    slot = D.layout(cfg, "Home", 32)[1]
+    assert slot.get("_captions") is True
+    b = D.live_button(slot, ("FabFilter Pro-Q 4", "active", "#3366cc"), tmp_path)
+    assert b["label"] == "Pro-Q 4" and b["_caption"] == "FabFilter" and b["_accent"] == "#c0392b"
+    img = D.render(b, 96, tmp_path)
+    assert img.getpixel((48, 94)) == (192, 57, 43)            # the maker's bar along the bottom
+    unknown = D.live_button(slot, ("Mystery Box", "active", None), tmp_path)
+    assert unknown["label"] == "Mystery Box" and "_caption" not in unknown
+    empty = D.live_button(slot, ("", "", None), tmp_path)
+    assert empty["label"] == "empty"

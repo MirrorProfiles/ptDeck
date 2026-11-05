@@ -27,19 +27,57 @@ COMMAND_BG = "#2a2f36"
 FOLDER_BG = "#20242a"
 
 _fonts: dict = {}
+KINDS = ("command", "narrow", "folder", "small")
+chosen_fonts: dict = {}       # kind -> font name, from the deck's 'fonts' setting (none: Barlow)
 
 
-def font(kind: str, px: int):
-    """kind: 'command' (Barlow Bold), 'narrow' (Barlow Condensed Bold), 'folder' (Condensed ExtraBold)."""
+def set_fonts(spec):
+    """The deck's 'fonts' setting: one installed font's name for every kind of text, or a mapping
+    {command:, narrow:, folder:, small:} (kinds left out keep Barlow). A deck without the setting
+    keeps PT Deck's own Barlow fonts, so one deck can change its type without touching another."""
+    global chosen_fonts
+    if isinstance(spec, dict):
+        new = {k: str(v) for k, v in spec.items() if k in KINDS and v}
+    elif spec:
+        new = {k: str(spec) for k in KINDS}
+    else:
+        new = {}
+    if new != chosen_fonts:
+        chosen_fonts = new
+        _fonts.clear()
+
+
+def needs_symbols(text) -> bool:
+    """True for labels made of arrows and the like (the back key's '↑'), which a chosen font may lack."""
+    return bool(text) and any(ord(c) >= 0x2000 for c in str(text))
+
+
+def font(kind: str, px: int, text=None):
+    """kind: 'command' (Barlow Bold), 'narrow' (Barlow Condensed Bold), 'folder' (Condensed ExtraBold),
+    'small' (Barlow SemiBold), unless the deck's 'fonts' setting names another font for that kind.
+    Text with symbols (arrows) always gets Barlow, which has them."""
     files = {"command": "Barlow-Bold.ttf", "narrow": "BarlowCondensed-Bold.ttf",
              "folder": "BarlowCondensed-ExtraBold.ttf", "small": "Barlow-SemiBold.ttf"}
-    key = (kind, px)
+    own = bool(chosen_fonts.get(kind)) and not needs_symbols(text)
+    key = (kind, px, own)
     if key not in _fonts:
-        try:
-            _fonts[key] = ImageFont.truetype(str(FONTS / files[kind]), px)
-        except OSError:
-            from .deck import font as fallback
-            _fonts[key] = fallback(px)
+        f = None
+        if own:
+            from .deck import find_font, missing_fonts
+            found = find_font(chosen_fonts[kind])
+            try:
+                f = ImageFont.truetype(found[0], px, index=found[1]) if found else None
+            except OSError:
+                f = None
+            if f is None:
+                missing_fonts.add(chosen_fonts[kind])
+        if f is None:
+            try:
+                f = ImageFont.truetype(str(FONTS / files[kind]), px)
+            except OSError:
+                from .deck import font as fallback
+                f = fallback(px)
+        _fonts[key] = f
     return _fonts[key]
 
 
@@ -638,7 +676,7 @@ def _fit(d, text, kind, width, height, max_lines, S, max_frac=1.0, min_frac=0.0)
     for n, frac in order:
         px = int(S * frac)
         for k in fonts:
-            f = font(k, px)
+            f = font(k, px, text)
             lines = _wrap(d, text, f, width)
             if (len(lines) == n and n * px <= height
                     and all(d.textlength(l, font=f) <= width for l in lines)):

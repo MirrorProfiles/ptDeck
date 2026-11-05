@@ -288,8 +288,27 @@ across the empty top-row keys.
 Deck-wide settings: `brightness`, `model`, `home`, `icon style`, `key font` (any installed font by name, for
 keys that don't set `font`), `page settings` (see below), `back button` (true/false),
 `back label`, `back color`, `back font size`, `page titles` (true/false),
-`title pattern` (`none` turns off the carpet behind titles), `additions applied`
-(kept by PT Deck; don't edit).
+`title pattern` (`none` turns off the carpet behind titles), `fonts` and `plug-in captions` (below),
+`additions applied` (kept by PT Deck; don't edit).
+
+`fonts` changes every piece of type on the deck (labels, the designed look, folder icons made by
+`tools/make_icons.py`, captions) to installed fonts named as Font Book shows them: one name for all,
+or one per kind. A deck without it keeps PT Deck's Barlow fonts, so each deck chooses its own type:
+
+```yaml
+fonts: DIN Condensed Bold                 # everything
+fonts: {command: Avenir Next Condensed Demi Bold, narrow: Avenir Next Condensed Demi Bold,
+        folder: Avenir Next Condensed Bold, small: Avenir Next Condensed Medium}
+```
+`command` is plain labels, `narrow` the condensed one for long labels and live keys, `folder` the
+tall capitals on folders, `small` captions and slot labels. Run `tools/make_icons.py` again after
+changing it so the folder pictures match.
+
+`plug-in captions: true` makes live insert keys show a plug-in's short name ("Pro-Q 4", "1176 Rev A":
+the maker's prefix and a long generic tail dropped) with the maker underneath and a thin bar in the
+maker's colour, so one maker's plug-ins look alike. The maker comes from the plug-in bundle's
+identifier (`ptdeck/plugins.py`, `VENDOR_LOOK` for the names and colours; others get a colour from
+their name). A picture set for the plug-in in the Manager still wins. Off unless the deck asks for it.
 
 `page settings` gives single pages their own values for `back button`, `back label`, `back color`,
 `back font size`, `page titles`, `title pattern`, `icon style` and `key font`, so one deck can mix

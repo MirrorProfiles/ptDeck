@@ -62,6 +62,8 @@ def page_cfg(cfg: dict, page: str) -> dict:
 
 
 def layout(cfg: dict, page: str, key_count: int, base=None) -> list[dict | None]:
+    from .look import set_fonts
+    set_fonts(cfg.get("fonts"))             # the deck's own type, if it names any
     """Which button goes on which key for a page. Folder pages get a Back button on key 1."""
     cfg = page_cfg(cfg, page)
     items = cfg["pages"].get(page)
@@ -96,6 +98,10 @@ def layout(cfg: dict, page: str, key_count: int, base=None) -> list[dict | None]
         for i, b in enumerate(slots):
             if b and not b.get("font") and not b.get("banner"):
                 slots[i] = dict(b, _font=cfg["key font"])
+    if cfg.get("plug-in captions"):         # live insert keys: short name, maker underneath
+        for i, b in enumerate(slots):
+            if b and b.get("live"):
+                slots[i] = dict(b, _captions=True)
     if str(cfg.get("icon style", "classic")).lower() == "designed":
         for i, b in enumerate(slots):
             if b and not b.get("back") and not b.get("banner"):
@@ -169,7 +175,10 @@ def icon_path(base: Path, name: str) -> Path:
 _font_cache: dict = {}
 
 
-def font(size: int):
+def font(size: int, text=None):
+    from . import look
+    if look.chosen_fonts.get("command") and not look.needs_symbols(text):   # the deck's own type
+        return look.font("command", size, text)
     if size not in _font_cache:
         f = None
         for p in FONT_PATHS:
@@ -291,13 +300,13 @@ def find_font(name: str):
     return None
 
 
-def named_font(name, size: int):
+def named_font(name, size: int, text=None):
     """A key font by name ('narrow' = PT Deck's condensed font); falls back to the standard font."""
     if not name:
-        return font(size)
+        return font(size, text)
     if str(name).lower() == "narrow":
         from .look import font as look_font
-        return look_font("narrow", size)
+        return look_font("narrow", size, text)
     key = (str(name), size)
     if key not in _font_cache:
         found = find_font(str(name))
@@ -437,8 +446,16 @@ def live_button(button: dict, info, base: Path) -> dict:
         icon = plugin_icon(base, name) if style != "empty" else None
         if icon:
             out["icon"] = icon
+        elif style == "empty":
+            out["label"] = "empty"
+        elif out.get("_captions"):           # 'plug-in captions': short name, maker and its colour
+            from .plugins import vendor_of, short_name
+            vendor = vendor_of(name)
+            out["label"] = short_name(name, vendor[0] if vendor else "")
+            if vendor:
+                out["_caption"], out["_accent"] = vendor
         else:
-            out["label"] = "empty" if style == "empty" else name
+            out["label"] = name
         if state.startswith("open"):
             out["outline"] = "#ffffff"
             out["folder_outline"] = True
@@ -586,21 +603,40 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
                 text_top = pad + ic.height + 1
         except (OSError, ValueError):
             d.text((pad, pad), "?", fill="red", font=font(size // 3))
+    caption = str(button.get("_caption") or "")
+    cap_h = int(size * 0.2) if caption else 0
     if label:
-        avail_h = size - text_top - pad
-        fs = int(button.get("font size", size // 5 if not icon else size // 7))
+        avail_h = size - text_top - pad - cap_h
+        fs = int(button.get("font size", size // 3 if caption else size // 5 if not icon else size // 7))
+        if caption and "\n" not in label:     # a short plug-in name stays on one line if a fair size allows
+            for one in range(fs, size // 5 - 1, -1):
+                f1 = named_font(button.get("font") or button.get("_font"), one, label)
+                if d.textlength(label, font=f1) <= size - 2 * pad:
+                    fs = one
+                    break
         while True:
-            fnt = named_font(button.get("font") or button.get("_font"), fs)
+            fnt = named_font(button.get("font") or button.get("_font"), fs, label)
             lines = _wrap(d, label, fnt, size - 2 * pad)
             lh = fs + 2
             if (len(lines) * lh <= avail_h and all(d.textlength(l, font=fnt) <= size - 2 * pad for l in lines)) or fs <= 8:
                 break
             fs -= 1
-        y = text_top + (avail_h - len(lines) * lh) // 2 if not icon else size - pad - len(lines) * lh
+        y = text_top + (avail_h - len(lines) * lh) // 2 if not icon else size - pad - cap_h - len(lines) * lh
         for line in lines:
             w = d.textlength(line, font=fnt)
             d.text(((size - w) / 2, y), line, fill=button.get("text color", "white"), font=fnt)
             y += lh
+    if caption:                 # the plug-in's maker along the bottom, with its colour as a thin bar
+        from .look import font as look_font
+        cf = look_font("small", max(8, int(size * 0.12)))
+        text = caption.upper()
+        while d.textlength(text, font=cf) > size - 2 * pad and cf.size > 7:
+            cf = look_font("small", cf.size - 1)
+        bar_h = max(2, size // 24)
+        d.text(((size - d.textlength(text, font=cf)) / 2, size - bar_h - cf.size - pad // 2), text,
+               fill="#cfd8e3", font=cf)
+        if button.get("_accent"):
+            d.rectangle([0, size - bar_h, size, size], fill=button["_accent"])
     if button.get("color bar"):   # track colour strip along the top
         d.rectangle([0, 0, size, bar], fill=button["color bar"])
     if button.get("corner"):    # small slot label in the top-left (live insert keys)

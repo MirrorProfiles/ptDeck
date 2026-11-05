@@ -33,6 +33,34 @@ VENDORS = [
     (r"^TDR ", "TDR ", "Tokyo Dawn Labs"),
     (r"^Tube-Tech ", "Tube-Tech ", "Softube"),
 ]
+# Bundle-identifier word (com.<word>.…) or scanner vendor -> (name on keys, colour). Anyone else
+# gets their domain word and a colour picked from its letters, so one maker's plug-ins still match.
+VENDOR_LOOK = {
+    "fabfilter": ("FabFilter", "#c0392b"), "uaudio": ("UA", "#2e86c1"), "izotope": ("iZotope", "#16a085"),
+    "wavesaudio": ("Waves", "#2980b9"), "waves": ("Waves", "#2980b9"),
+    "plugin-alliance": ("Plugin Alliance", "#e67e22"), "pluginalliance": ("Plugin Alliance", "#e67e22"),
+    "lindellplugins": ("Lindell", "#e67e22"), "lindellaudio": ("Lindell", "#e67e22"),
+    "softube": ("Softube", "#a0763b"), "ssl": ("SSL", "#5d6d7e"), "solid state logic": ("SSL", "#5d6d7e"),
+    "ikmultimedia": ("IK Multimedia", "#d35400"), "neuraldsp": ("Neural DSP", "#7f8c8d"),
+    "native-instruments": ("Native Instruments", "#2c3e50"), "avid": ("Avid", "#6c3483"),
+    "wizoo": ("AIR", "#1f77b4"), "air": ("AIR", "#1f77b4"), "sonnox": ("Sonnox", "#1abc9c"),
+    "valhalladsp": ("Valhalla", "#27ae60"), "stltones": ("STL Tones", "#b03a2e"),
+    "unfilteredaudio": ("Unfiltered Audio", "#9b59b6"), "nembriniaudio": ("Nembrini", "#c0631b"),
+    "temeculadsp": ("Temecula DSP", "#34495e"), "xlnaudio": ("XLN Audio", "#e74c3c"),
+    "tokyodawnlabs": ("TDR", "#148f77"), "u-he": ("u-he", "#7d3c98"), "klanghelm": ("Klanghelm", "#5b2c6f"),
+    "baby audio": ("Baby Audio", "#f39c12"), "korneffaudio": ("Korneff", "#784212"),
+    "threebodytech": ("Three-Body", "#8e44ad"), "synchroarts": ("Synchro Arts", "#117a65"),
+    "stevenslate": ("Slate", "#922b21"), "celemony": ("Celemony", "#1f618d"), "soundtoys": ("Soundtoys", "#d4ac0d"),
+    "eventide": ("Eventide", "#2e4053"), "antares": ("Antares", "#1b4f72"), "toontrack": ("Toontrack", "#7b241c"),
+    "arturia": ("Arturia", "#2874a6"), "adptr": ("ADPTR", "#6e2c00"), "mhlabs": ("Metric Halo", "#145a32"),
+    "dmgaudio": ("DMG Audio", "#4a235a"), "liquidsonics": ("LiquidSonics", "#1a5276"),
+    "klevgrand": ("Klevgrand", "#7e5109"), "toguaudioline": ("TAL", "#633974"),
+    "universal audio (uadx)": ("UA", "#2e86c1"), "tube-tech": ("Softube", "#a0763b"),
+}
+VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "bx_", "iZotope ", "Waves ", "Softube ", "Valhalla",
+                   "Unfiltered Audio ", "STL ", "TDR ", "NA ", "Oxford ", "Lindell ", "Tube-Tech ")
+GENERIC_TAIL = {"compressor", "equalizer", "eq", "limiter", "preamp", "and", "plug-in", "plugin", "processor"}
+
 UA_UPPER = {"ua", "ssl", "la", "api", "emt", "eq", "eqp", "meq", "hlf", "atr", "vt", "dbx", "vog", "b3", "a800"}
 
 
@@ -77,6 +105,79 @@ def same_plugin(a: str, b: str) -> bool:
         return True
     # Same model number (e.g. 1073, 1176): 'UADx Neve 1073' = 'UADx 1073 Preamp and EQ'
     return any(w.isdigit() and len(w) >= 3 for w in ta & tb)
+
+
+_bundle_words: dict | None = None     # lower plug-in name -> (bundle-id word, scanner vendor)
+
+
+def _bundles(folder: Path | None = None) -> dict:
+    """Each installed plug-in's maker, read once from the bundles' Info.plist identifiers
+    (com.fabfilter.Pro-Q.AAX.4 -> 'fabfilter') and the scanner's own guess."""
+    global _bundle_words
+    if _bundle_words is None or folder is not None:
+        import plistlib
+        out = {}
+        base = Path(folder or FOLDER)
+        for p in scan(base):
+            word = ""
+            if p["file"].endswith(".aaxplugin"):
+                for plist in (base / p["file"] / "Contents" / "Info.plist",
+                              *base.glob(f"*/{p['file']}/Contents/Info.plist")):
+                    try:
+                        ident = str(plistlib.loads(plist.read_bytes()).get("CFBundleIdentifier", ""))
+                    except (OSError, ValueError, plistlib.InvalidFileException):
+                        continue
+                    parts = ident.lower().split(".")
+                    if len(parts) >= 2:
+                        word = parts[1]
+                    break
+            out[p["name"].lower()] = (word, p.get("vendor", ""))
+        if folder is not None:
+            return out
+        _bundle_words = out
+    return _bundle_words
+
+
+def vendor_of(name: str, folder: Path | None = None):
+    """(name on keys, colour) of the maker of a plug-in, as Pro Tools names it; None if unknown."""
+    import colorsys
+    import hashlib
+    if not name:
+        return None
+    table = _bundles(folder)
+    hit = table.get(name.lower())
+    if hit is None:                                   # 'Valhalla VintageVerb' = 'ValhallaVintageVerb'
+        squashed = re.sub(r"[^a-z0-9]+", "", name.lower()).replace("renaissance", "ren")   # Waves' RenAxx
+        hit = next((v for n, v in table.items()
+                    if re.sub(r"[^a-z0-9]+", "", n).replace("renaissance", "ren") == squashed), None)
+    if hit is None:
+        hit = next((v for n, v in table.items() if same_plugin(n, name)), None)
+    if hit is None:
+        return None
+    word, vendor = hit
+    for key in (word, vendor.lower()):
+        if key and key in VENDOR_LOOK:
+            return VENDOR_LOOK[key]
+    label = vendor or word.replace("-", " ").title()
+    if not label or label in ("Aaxplugin", "Co", "Insert"):
+        return None
+    hue = int(hashlib.md5(label.lower().encode()).hexdigest(), 16) % 360 / 360
+    r, g, b = colorsys.hls_to_rgb(hue, 0.42, 0.6)
+    return label, "#%02x%02x%02x" % (int(r * 255), int(g * 255), int(b * 255))
+
+
+def short_name(name: str, vendor: str = "") -> str:
+    """The name as a key shows it: no maker's prefix ('UADx 1176 Rev A Compressor' -> '1176 Rev A',
+    'FabFilter Pro-Q 4' -> 'Pro-Q 4'), and no long generic tail once it runs past two words."""
+    out = str(name).strip()
+    for pre in VENDOR_PREFIXES + ((vendor + " ",) if len(vendor) > 3 else ()):   # 'SSL …' stays
+        if out.lower().startswith(pre.lower()) and len(out) > len(pre):
+            out = out[len(pre):].strip()
+            break
+    words = out.split()
+    while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
+        words.pop()
+    return " ".join(words) or str(name)
 
 
 def scan(folder: Path | None = None) -> list[dict]:

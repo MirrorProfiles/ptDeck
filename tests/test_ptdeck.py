@@ -2397,10 +2397,10 @@ def test_vendor_and_short_name_from_the_plugin_bundles(tmp_path):
     name, colour = P.vendor_of("Obscure Thing", tmp_path)
     assert name == "Someshop" and colour.startswith("#") and len(colour) == 7
     assert P.vendor_of("Nothing Like It", tmp_path) is None
-    assert P.short_name("UADx 1176 Rev A Compressor", "UA") == "1176 Rev A"
+    assert P.short_name("UADx 1176 Rev A Compressor", "UA") == "1176 Rev A Comp"
     assert P.short_name("FabFilter Pro-Q 4", "FabFilter") == "Pro-Q 4"
     assert P.short_name("bx_console SSL 9000 J") == "SSL 9000 J"
-    assert P.short_name("UADx Neve 1073 Preamp and EQ") == "Neve 1073"
+    assert P.short_name("UADx Neve 1073 Preamp and EQ") == "Neve 1073 Preamp and EQ"
     assert P.short_name("SSL Native Channel Strip 2", "SSL") == "SSL Native Channel Strip 2"
     assert P.short_name("Valhalla VintageVerb", "Valhalla") == "VintageVerb"
     assert P.short_name("EQ", "") == "EQ"
@@ -2410,6 +2410,7 @@ def test_plugin_captions_on_live_keys(tmp_path, monkeypatch):
     from ptdeck import plugins as P
     monkeypatch.setattr(P, "vendor_of", lambda name, folder=None: ("FabFilter", "#c0392b") if "Pro-Q" in name else None)
     (tmp_path / "icons").mkdir()
+    P.save_categories(tmp_path, {"EQ": ["FabFilter Pro-Q 4"]})
     key = {"key": 2, "live": 3}
     plain = D.live_button(key, ("FabFilter Pro-Q 4", "active", "#3366cc"), tmp_path)
     assert plain["label"] == "FabFilter Pro-Q 4" and "_caption" not in plain
@@ -2429,13 +2430,13 @@ def test_plugin_captions_on_live_keys(tmp_path, monkeypatch):
 
 # ---------- Pro Tools' plug-in categories ----------
 
-def test_categories_learnt_from_pro_tools_then_guessed_from_the_name(tmp_path):
+def test_categories_come_only_from_pro_tools(tmp_path):
     from ptdeck import plugins as P
-    assert P.category_of("FabFilter Pro-Q 4") == "EQ" and P.category_of("H-Delay") == "Delay"
-    assert P.category_of("Renaissance Axx") is None and P.category_colour(None) is None
+    assert P.category_of("FabFilter Pro-Q 4") is None                      # never guessed from the name
+    assert P.category_of("FabFilter Pro-Q 4", tmp_path) is None and P.category_colour(None) is None
     f = P.save_categories(tmp_path, {"Dynamics": ["Renaissance Axx", "Pro-C 2"], "Reverb": ["ValhallaVintageVerb"]})
     assert f == tmp_path / "plugin-categories.yaml"
-    assert P.category_of("Renaissance Axx", tmp_path) == "Dynamics"        # learnt beats the guess
+    assert P.category_of("Renaissance Axx", tmp_path) == "Dynamics"
     assert P.category_of("Valhalla VintageVerb", tmp_path) == "Reverb"     # spacing doesn't matter
     assert P.category_of("Mystery Box", tmp_path) is None
     P.save_categories(tmp_path, {"Dynamics": ["Pro-C 2", "Smack"]})       # another read: merged, nothing lost
@@ -2480,15 +2481,21 @@ def test_short_names_drop_archetype_and_shorten_renaissance():
     assert P.short_name("Renaissance Compressor", "Waves") == "Ren Compressor"
 
 
-def test_short_names_keep_a_tail_that_tells_two_plugins_apart(monkeypatch):
+def test_short_names_follow_the_owners_rules(monkeypatch):
     from ptdeck import plugins as P
     monkeypatch.setattr(P, "scan", lambda folder=None: [{"name": n, "file": "", "vendor": ""} for n in
-                        ("British Class A Compressor", "British Class A Equalizer", "El Juan Limiter")])
+                        ("NA LoFi", "Unfiltered Audio LoFi", "British Class A Compressor", "British Class A Equalizer")])
     monkeypatch.setattr(P, "_clashes", None)
-    assert P.short_name("British Class A Compressor") == "British Class A Compressor"
-    assert P.short_name("British Class A Equalizer") == "British Class A Equalizer"
-    assert P.short_name("El Juan Limiter") == "El Juan"
-    assert P.short_name("bx_console N") == "bx_console N"             # never cut to under 4 characters
-    assert P.short_name("bx_digital V3") == "bx_digital V3"           # bare bx_ names are their own thing
-    assert P.category_of("FabFilter Saturn 2") is None                # the maker's name isn't a clue
-    assert P.category_of("ADPTR MetricAB") == "Other"
+    assert P.short_name("NA LoFi") == "NA LoFi"                       # two plug-ins would read 'LoFi': stay whole
+    assert P.short_name("Unfiltered Audio LoFi") == "Unfiltered Audio LoFi"
+    assert P.short_name("British Class A Compressor") == "British Class A Comp"      # long: Comp and EQ
+    assert P.short_name("British Class A Equalizer") == "British Class A EQ"
+    assert P.short_name("Capitol Compressor") == "Capitol Compressor"              # short: left alone
+    assert P.short_name("El Juan Limiter") == "El Juan Limiter"                    # nothing is dropped
+    assert P.short_name("Oxford EQ") == "Oxford EQ"                                # never under 4 characters
+    assert P.short_name("bx_digital V3") == "bx_digital"                           # version tag off, bx_ kept
+    assert P.short_name("bx_townhouse Buss Compressor") == "Townhouse Buss Comp"   # long bx_ name: brand off
+    assert P.short_name("bx_console N") == "Neve VXS"
+    assert P.short_name("Chandler Limited Zener Limiter") == "Chandler Zener Limiter"
+    assert P.short_name("Abbey Road Chambers") == "AR Chambers"
+    assert P.short_name("LTL Chop Shop EQ") == "Chop Shop EQ"

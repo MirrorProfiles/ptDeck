@@ -66,27 +66,16 @@ CATEGORY_LOOK = {
     "Dither": "#7f8c8d", "Sound Field": "#1abc9c", "Instrument": "#a04000", "Effect": "#2874a6",
     "Other": "#626567", "Hardware": "#4a235a", "Wrapped Plug-ins": "#626567",
 }
-# A guess from the name, for plug-ins 'learn-categories' hasn't seen (first match wins).
-CATEGORY_WORDS = [
-    ("Noise Reduction", r"\brx\b|de-?click|de-?noise|de-?hum|de-?crackle|de-?reverb|de-?ess|mouth|breath|noise|restor|spectral"),
-    ("Pitch Shift", r"pitch|tune\b|auto-?tune|harmoniz|harmony|vocalign|melodyne|octave|repitch"),
-    ("Dynamics", r"compress|limit|\bcomp\b|1176|la-?2a|la-?3a|\bdbx\b|gate|expand|transient|maxim|opto|\bvca\b|\bfet\b|pro-c|pro-l|pro-g|pro-mb|levell|smack|dynam"),
-    ("EQ", r"\beq\b|\beq\d|equali[sz]er|pro-q|filter|tilt|pultec|channel strip|\bconsole\b|\bq\d\b"),
-    ("Reverb", r"verb|plate|chamber|hall\b|spring|\broom|convolution|\bir\b"),
-    ("Delay", r"delay|echo|slap"),
-    ("Modulation", r"chorus|flang|phaser|tremolo|vibrato|rotary|leslie|modul|ensemble|auto-?pan|doubler"),
-    ("Harmonic", r"saturat|distort|tube|tape|overdrive|fuzz|drive|clip|exciter|enhanc|preamp|\bamp\b|\bcab|pedal|lo-?fi|decapit|archetype|\bnam\b|tonex|amplitube|ampeg"),
-    ("Sound Field", r"width|stereo|mono|imager|spatial|panner|binaural|atmos"),
-    ("Dither", r"dither"),
-    ("Instrument", r"drum|piano|synth|kontakt|keys\b|sampler|player|xpand|boom|vacuum|structure|superior|addictive|trilian|omnisphere|serum|battery"),
-    ("Other", r"meter|analy|metric|gain|trim|util|scope|phase|align|lufs|loudness|correlation|spectrum|tuner"),
-]
 CATEGORIES_FILE = "plugin-categories.yaml"    # in the deck folder: plug-in name -> category, learnt from Pro Tools
 
-VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "Archetype ", "iZotope ", "Waves ", "Softube ", "Valhalla",
-                   "Unfiltered Audio ", "STL ", "TDR ", "NA ", "Oxford ", "Lindell ", "Tube-Tech ")
-SHORT_WORDS = {"renaissance": "Ren"}        # long words with a known short form for a key
-GENERIC_TAIL = {"compressor", "equalizer", "eq", "limiter", "preamp", "and", "plug-in", "plugin", "processor"}
+VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "Archetype ", "LTL ",
+                   "iZotope ", "Waves ", "Softube ", "Valhalla", "Unfiltered Audio ", "STL ", "TDR ", "NA ",
+                   "Oxford ", "Lindell ", "Tube-Tech ")
+NAME_ALIASES = {"bx_console n": "Neve VXS", "amplified instrument processor": "AIP"}   # as the owner likes them
+ALWAYS_SHORT = {"renaissance": "Ren", "abbey road": "AR"}            # short forms used whatever the length
+LONG_SHORT = {"compressor": "Comp", "equalizer": "EQ"}               # ...and these once a name is 3+ words
+DROP_WORDS = {"limited"}                                             # dropped from a name of 3+ words
+VERSION = re.compile(r"(?i)^v\d+$")                                  # 'V2', 'V3' tags come off the end
 
 UA_UPPER = {"ua", "ssl", "la", "api", "emt", "eq", "eqp", "meq", "hlf", "atr", "vt", "dbx", "vog", "b3", "a800"}
 
@@ -219,25 +208,18 @@ def learnt_categories(base) -> dict:
 
 
 def category_of(name: str, base=None) -> str | None:
-    """A plug-in's Pro Tools category: what 'learn-categories' read from Pro Tools' insert menu
-    if it has, else a guess from the name; None if neither says."""
-    if not name:
+    """A plug-in's Pro Tools category, as 'learn-categories' read it from Pro Tools' insert menu
+    into the deck's plugin-categories.yaml; None until then (never guessed from the name)."""
+    if not name or base is None:
         return None
-    if base is not None:
-        table = learnt_categories(base)
-        hit = table.get(name.lower())
-        if hit is None:
-            squashed = re.sub(r"[^a-z0-9]+", "", name.lower())
-            hit = next((c for n, c in table.items() if re.sub(r"[^a-z0-9]+", "", n) == squashed), None)
-        if hit is None:
-            hit = next((c for n, c in table.items() if same_plugin(n, name)), None)
-        if hit:
-            return hit
-    bare = short_name(name, keep_tail=True)          # 'FabFilter' must not read as a filter
-    for cat, pat in CATEGORY_WORDS:
-        if re.search(pat, bare, re.I):
-            return cat
-    return None
+    table = learnt_categories(base)
+    hit = table.get(name.lower())
+    if hit is None:
+        squashed = re.sub(r"[^a-z0-9]+", "", name.lower())
+        hit = next((c for n, c in table.items() if re.sub(r"[^a-z0-9]+", "", n) == squashed), None)
+    if hit is None:
+        hit = next((c for n, c in table.items() if same_plugin(n, name)), None)
+    return hit
 
 
 def category_colour(category: str | None) -> str | None:
@@ -268,37 +250,49 @@ def save_categories(base, found: dict) -> Path:
 _clashes: set | None = None
 
 
-def _tail_clashes() -> set:
-    """Installed names that would collide once their generic tail went ('British Class A Compressor'
-    and 'British Class A Equalizer'), so they keep it. Read once."""
-    global _clashes
-    if _clashes is None:
-        seen: dict = {}
-        for p in scan():
-            cut = short_name(p["name"], keep_tail=True)
-            words = cut.split()
-            while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
-                words.pop()
-            seen.setdefault(" ".join(words).lower(), set()).add(cut.lower())
-        _clashes = {n for group in seen.values() if len(group) > 1 for n in group}
-    return _clashes
-
-
-def short_name(name: str, vendor: str = "", keep_tail: bool = False) -> str:
-    """The name as a key shows it: no maker's prefix ('UADx 1176 Rev A Compressor' -> '1176 Rev A',
-    'FabFilter Pro-Q 4' -> 'Pro-Q 4'), and no long generic tail once it runs past two words, unless
-    another installed plug-in would then show the same name. Never cut down to under 4 characters."""
+def _cut(name: str, vendor: str = "") -> str:
+    """The shortening rules alone, before the check that no two plug-ins end up alike."""
     out = str(name).strip()
+    alias = NAME_ALIASES.get(out.lower())
+    if alias:
+        return alias
     for pre in VENDOR_PREFIXES + ((vendor + " ",) if len(vendor) > 3 else ()):   # 'SSL …' stays
         if out.lower().startswith(pre.lower()) and len(out) - len(pre) >= 4:
             out = out[len(pre):].strip()
             break
-    words = [SHORT_WORDS.get(w.lower(), w) for w in out.split()]
-    cut = " ".join(words)
-    if not keep_tail and cut.lower() not in _tail_clashes():
-        while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
-            words.pop()
+    if out.lower().startswith("bx_") and len(out.split()) >= 3:    # long bx_ names lose the brand
+        out = out[3:].strip()
+        out = out[:1].upper() + out[1:]
+    for long, short in ALWAYS_SHORT.items():
+        out = re.sub(r"(?i)\b" + re.escape(long) + r"\b", short, out)
+    words = out.split()
+    if len(words) > 1 and VERSION.match(words[-1]):
+        words.pop()
+    if len(words) >= 3:
+        words = [LONG_SHORT.get(w.lower(), w) for w in words if w.lower() not in DROP_WORDS]
     return " ".join(words) or str(name)
+
+
+def _short_clashes() -> set:
+    """Installed names whose short form would match another plug-in's, so they stay as they are.
+    Read once."""
+    global _clashes
+    if _clashes is None:
+        groups: dict = {}
+        for p in scan():
+            groups.setdefault(_cut(p["name"]).lower(), set()).add(p["name"].lower())
+        _clashes = {n for g in groups.values() if len(g) > 1 for n in g}
+    return _clashes
+
+
+def short_name(name: str, vendor: str = "") -> str:
+    """The name as a key shows it: the maker's prefix off ('UADx 1176 Rev A Compressor' ->
+    '1176 Rev A Comp', 'FabFilter Pro-Q 4' -> 'Pro-Q 4'), version tags off, long names with Comp
+    and EQ for Compressor and Equalizer, Ren and AR for Renaissance and Abbey Road. Never cut to
+    under 4 characters, and never so that two installed plug-ins read the same (then it stays whole)."""
+    if str(name).strip().lower() in _short_clashes():
+        return str(name).strip()
+    return _cut(name, vendor)
 
 
 def scan(folder: Path | None = None) -> list[dict]:

@@ -308,14 +308,19 @@ fonts: {command: Avenir Next Condensed Demi Bold, narrow: Avenir Next Condensed 
 tall capitals on folders, `small` captions and slot labels. Run `tools/make_icons.py` again after
 changing it so the folder pictures match.
 
-`plug-in captions: true` makes live insert keys show a plug-in's short name ("Pro-Q 4", "1176 Rev A":
-the maker's prefix, "Archetype" and a long generic tail dropped, "Renaissance" shortened to "Ren") with the maker underneath and a thin bar in the
-colour of its Pro Tools category (EQ blue, Dynamics red, Reverb green, Delay teal, Modulation purple,
-Harmonic orange, Pitch Shift yellow, Noise Reduction grey-blue...: `CATEGORY_LOOK` in
-`ptdeck/plugins.py`). The maker comes from the plug-in bundle's identifier (`VENDOR_LOOK` for names).
-The category comes from `my-deck/plugin-categories.yaml`, written by `ptdeck learn-categories`
-(section 10) and editable by hand, else a guess from the name (`CATEGORY_WORDS`); no bar if neither
-knows. A picture set for the plug-in in the Manager still wins. Off unless the deck asks for it.
+`plug-in captions: true` makes live insert keys show a plug-in's short name with the maker underneath
+and a thin bar in the colour of its Pro Tools category (EQ blue, Dynamics red, Reverb green, Delay
+teal, Modulation purple, Harmonic orange, Pitch Shift yellow, Noise Reduction grey-blue...:
+`CATEGORY_LOOK` in `ptdeck/plugins.py`). Short names (`short_name`): the maker's prefix comes off
+("UADx", "FabFilter", "Archetype", "LTL"...), version tags ("V2") come off the end, a name of three or
+more words shortens Compressor and Equalizer to Comp and EQ and drops "Limited", Renaissance is Ren
+and Abbey Road is AR, long bx_ names lose "bx_" while short ones keep it, `NAME_ALIASES` holds one-offs
+("bx_console N" = Neve VXS). Nothing else is dropped, a name is never cut below 4 characters, and if
+two installed plug-ins would read the same both stay whole. The maker comes from the plug-in
+bundle's identifier (`VENDOR_LOOK` for names). The category comes only from
+`my-deck/plugin-categories.yaml`, written by `ptdeck learn-categories` (section 10) and editable by
+hand; it is never guessed from the name, so there is no bar until the command has run. A picture set
+for the plug-in in the Manager still wins. Off unless the deck asks for it.
 
 `page settings` gives single pages their own values for `back button`, `back label`, `back color`,
 `back font size`, `page titles`, `title pattern`, `icon style`, `key font` and `folder color`, so one deck

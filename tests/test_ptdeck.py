@@ -2478,3 +2478,17 @@ def test_short_names_drop_archetype_and_shorten_renaissance():
     assert P.short_name("Archetype Plini X", "Neural DSP") == "Plini X"
     assert P.short_name("Renaissance Axx", "Waves") == "Ren Axx"
     assert P.short_name("Renaissance Compressor", "Waves") == "Ren Compressor"
+
+
+def test_short_names_keep_a_tail_that_tells_two_plugins_apart(monkeypatch):
+    from ptdeck import plugins as P
+    monkeypatch.setattr(P, "scan", lambda folder=None: [{"name": n, "file": "", "vendor": ""} for n in
+                        ("British Class A Compressor", "British Class A Equalizer", "El Juan Limiter")])
+    monkeypatch.setattr(P, "_clashes", None)
+    assert P.short_name("British Class A Compressor") == "British Class A Compressor"
+    assert P.short_name("British Class A Equalizer") == "British Class A Equalizer"
+    assert P.short_name("El Juan Limiter") == "El Juan"
+    assert P.short_name("bx_console N") == "bx_console N"             # never cut to under 4 characters
+    assert P.short_name("bx_digital V3") == "bx_digital V3"           # bare bx_ names are their own thing
+    assert P.category_of("FabFilter Saturn 2") is None                # the maker's name isn't a clue
+    assert P.category_of("ADPTR MetricAB") == "Other"

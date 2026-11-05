@@ -55,6 +55,8 @@ VENDOR_LOOK = {
     "arturia": ("Arturia", "#2874a6"), "adptr": ("ADPTR", "#6e2c00"), "mhlabs": ("Metric Halo", "#145a32"),
     "dmgaudio": ("DMG Audio", "#4a235a"), "liquidsonics": ("LiquidSonics", "#1a5276"),
     "klevgrand": ("Klevgrand", "#7e5109"), "toguaudioline": ("TAL", "#633974"),
+    "louderthanliftoff": ("LTL", "#1f618d"), "bertom": ("Bertom", "#5b2c6f"), "bettermaker": ("Bettermaker", "#1b4f72"),
+    "submissionaudio": ("Submission Audio", "#8f2aab"), "cradle": ("Cradle", "#6e2c00"),
     "universal audio (uadx)": ("UA", "#2e86c1"), "tube-tech": ("Softube", "#a0763b"),
 }
 # Pro Tools' plug-in categories -> the colour of the bar under a plug-in's name on a live key.
@@ -67,21 +69,21 @@ CATEGORY_LOOK = {
 # A guess from the name, for plug-ins 'learn-categories' hasn't seen (first match wins).
 CATEGORY_WORDS = [
     ("Noise Reduction", r"\brx\b|de-?click|de-?noise|de-?hum|de-?crackle|de-?reverb|de-?ess|mouth|breath|noise|restor|spectral"),
-    ("Pitch Shift", r"pitch|tune\b|auto-?tune|harmoni|vocalign|melodyne|octave|repitch"),
+    ("Pitch Shift", r"pitch|tune\b|auto-?tune|harmoniz|harmony|vocalign|melodyne|octave|repitch"),
     ("Dynamics", r"compress|limit|\bcomp\b|1176|la-?2a|la-?3a|\bdbx\b|gate|expand|transient|maxim|opto|\bvca\b|\bfet\b|pro-c|pro-l|pro-g|pro-mb|levell|smack|dynam"),
-    ("EQ", r"\beq\b|equali[sz]er|pro-q|filter|tilt|pultec|channel strip|\bconsole\b|\bq\d\b"),
+    ("EQ", r"\beq\b|\beq\d|equali[sz]er|pro-q|filter|tilt|pultec|channel strip|\bconsole\b|\bq\d\b"),
     ("Reverb", r"verb|plate|chamber|hall\b|spring|\broom|convolution|\bir\b"),
     ("Delay", r"delay|echo|slap"),
     ("Modulation", r"chorus|flang|phaser|tremolo|vibrato|rotary|leslie|modul|ensemble|auto-?pan|doubler"),
-    ("Harmonic", r"saturat|distort|tube|tape|overdrive|fuzz|drive|clip|exciter|enhanc|preamp|\bamp\b|cab|pedal|lo-?fi|decapit|archetype|\bnam\b|tonex|amplitube|ampeg|archetype"),
+    ("Harmonic", r"saturat|distort|tube|tape|overdrive|fuzz|drive|clip|exciter|enhanc|preamp|\bamp\b|\bcab|pedal|lo-?fi|decapit|archetype|\bnam\b|tonex|amplitube|ampeg"),
     ("Sound Field", r"width|stereo|mono|imager|spatial|panner|binaural|atmos"),
     ("Dither", r"dither"),
-    ("Instrument", r"drum|piano|synth|kontakt|keys\b|sampler|player|xpand|boom|vacuum|structure|superior|addictive|trilian|omnisphere|serum|battery|\bv\d?$"),
+    ("Instrument", r"drum|piano|synth|kontakt|keys\b|sampler|player|xpand|boom|vacuum|structure|superior|addictive|trilian|omnisphere|serum|battery"),
     ("Other", r"meter|analy|metric|gain|trim|util|scope|phase|align|lufs|loudness|correlation|spectrum|tuner"),
 ]
 CATEGORIES_FILE = "plugin-categories.yaml"    # in the deck folder: plug-in name -> category, learnt from Pro Tools
 
-VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "bx_", "Archetype ", "iZotope ", "Waves ", "Softube ", "Valhalla",
+VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "Archetype ", "iZotope ", "Waves ", "Softube ", "Valhalla",
                    "Unfiltered Audio ", "STL ", "TDR ", "NA ", "Oxford ", "Lindell ", "Tube-Tech ")
 SHORT_WORDS = {"renaissance": "Ren"}        # long words with a known short form for a key
 GENERIC_TAIL = {"compressor", "equalizer", "eq", "limiter", "preamp", "and", "plug-in", "plugin", "processor"}
@@ -231,8 +233,9 @@ def category_of(name: str, base=None) -> str | None:
             hit = next((c for n, c in table.items() if same_plugin(n, name)), None)
         if hit:
             return hit
+    bare = short_name(name, keep_tail=True)          # 'FabFilter' must not read as a filter
     for cat, pat in CATEGORY_WORDS:
-        if re.search(pat, name, re.I):
+        if re.search(pat, bare, re.I):
             return cat
     return None
 
@@ -262,17 +265,39 @@ def save_categories(base, found: dict) -> Path:
     return f
 
 
-def short_name(name: str, vendor: str = "") -> str:
+_clashes: set | None = None
+
+
+def _tail_clashes() -> set:
+    """Installed names that would collide once their generic tail went ('British Class A Compressor'
+    and 'British Class A Equalizer'), so they keep it. Read once."""
+    global _clashes
+    if _clashes is None:
+        seen: dict = {}
+        for p in scan():
+            cut = short_name(p["name"], keep_tail=True)
+            words = cut.split()
+            while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
+                words.pop()
+            seen.setdefault(" ".join(words).lower(), set()).add(cut.lower())
+        _clashes = {n for group in seen.values() if len(group) > 1 for n in group}
+    return _clashes
+
+
+def short_name(name: str, vendor: str = "", keep_tail: bool = False) -> str:
     """The name as a key shows it: no maker's prefix ('UADx 1176 Rev A Compressor' -> '1176 Rev A',
-    'FabFilter Pro-Q 4' -> 'Pro-Q 4'), and no long generic tail once it runs past two words."""
+    'FabFilter Pro-Q 4' -> 'Pro-Q 4'), and no long generic tail once it runs past two words, unless
+    another installed plug-in would then show the same name. Never cut down to under 4 characters."""
     out = str(name).strip()
     for pre in VENDOR_PREFIXES + ((vendor + " ",) if len(vendor) > 3 else ()):   # 'SSL …' stays
-        if out.lower().startswith(pre.lower()) and len(out) > len(pre):
+        if out.lower().startswith(pre.lower()) and len(out) - len(pre) >= 4:
             out = out[len(pre):].strip()
             break
     words = [SHORT_WORDS.get(w.lower(), w) for w in out.split()]
-    while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
-        words.pop()
+    cut = " ".join(words)
+    if not keep_tail and cut.lower() not in _tail_clashes():
+        while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
+            words.pop()
     return " ".join(words) or str(name)
 
 

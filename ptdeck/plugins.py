@@ -75,7 +75,7 @@ NAME_ALIASES = {"bx_console n": "Neve VXS", "amplified instrument processor": "A
 ALWAYS_SHORT = {"renaissance": "Ren", "abbey road": "AR"}            # short forms used whatever the length
 LONG_SHORT = {"compressor": "Comp", "equalizer": "EQ"}               # ...and these once a name is 3+ words
 DROP_WORDS = {"limited"}                                             # dropped from a name of 3+ words
-VERSION = re.compile(r"(?i)^v\d+$")                                  # 'V2', 'V3' tags come off the end
+VERSION = re.compile(r"(?i)^v\d$")                                   # 'V2', 'v6' tags come off the end (not a V76)
 
 UA_UPPER = {"ua", "ssl", "la", "api", "emt", "eq", "eqp", "meq", "hlf", "atr", "vt", "dbx", "vog", "b3", "a800"}
 

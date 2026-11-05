@@ -2494,6 +2494,7 @@ def test_short_names_follow_the_owners_rules(monkeypatch):
     assert P.short_name("El Juan Limiter") == "El Juan Limiter"                    # nothing is dropped
     assert P.short_name("Oxford EQ") == "Oxford EQ"                                # never under 4 characters
     assert P.short_name("bx_digital V3") == "bx_digital"                           # version tag off, bx_ kept
+    assert P.short_name("Pre V76") == "Pre V76"                                    # a model number is not a version
     assert P.short_name("bx_townhouse Buss Compressor") == "Townhouse Buss Comp"   # long bx_ name: brand off
     assert P.short_name("bx_console N") == "Neve VXS"
     assert P.short_name("Chandler Limited Zener Limiter") == "Chandler Zener Limiter"

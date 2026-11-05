@@ -13,6 +13,12 @@ from ptdeck.paths import DATA  # noqa: E402
 OUT = DATA / "icons"
 S = 576
 
+try:                                   # draw in the deck's own fonts ('fonts:' in deck.yaml), if any
+    import yaml
+    look.set_fonts((yaml.safe_load((DATA / "deck.yaml").read_text(encoding="utf-8")) or {}).get("fonts"))
+except (OSError, ValueError):
+    pass
+
 
 def bez(p0, p1, p2, p3, n=40):
     pts = []
@@ -387,6 +393,25 @@ def art_editing(d, img, box):
     d.ellipse([bx - 13, by - 13, bx + 13, by + 13], fill="#f2c230", outline="#3c4c63", width=4)
 
 
+def art_recording(d, img, box):
+    """A round record button, lit, with a small level meter beside it."""
+    x0, y0, x1, y1 = box
+    cy = (y0 + y1) / 2
+    r = (y1 - y0) * 0.36
+    cx = x0 + (x1 - x0) * 0.32
+    d.ellipse([cx - r * 1.3, cy - r * 1.3, cx + r * 1.3, cy + r * 1.3], fill="#2a2a2e", outline="#55585e", width=6)
+    d.ellipse([cx - r, cy - r, cx + r, cy + r], fill="#e23b2e")
+    d.ellipse([cx - r * 0.55, cy - r * 0.75, cx - r * 0.05, cy - r * 0.35], fill="#ff8f85")
+    bars = 6
+    bx = x0 + (x1 - x0) * 0.62
+    bw = (x1 - bx) / (bars * 1.5)
+    for i in range(bars):
+        h = (y1 - y0) * (0.25 + 0.11 * i)
+        col = "#3fbf6a" if i < 4 else "#e8b532" if i < 5 else "#e23b2e"
+        d.rounded_rectangle([bx + i * bw * 1.5, cy + (y1 - y0) * 0.36 - h, bx + i * bw * 1.5 + bw, cy + (y1 - y0) * 0.36],
+                            radius=bw * 0.2, fill=col)
+
+
 def art_solo(d, img, box):
     """Pro Tools' solo button: a yellow rounded square with an S."""
     x0, y0, x1, y1 = box
@@ -482,4 +507,5 @@ if __name__ == "__main__":
     cabinetron()
     folder_frame("#b0472c", "MIXING", art_vu).save(OUT / "folder-mixing.png")
     folder_frame("#2a8f8a", "EDITING", art_editing).save(OUT / "folder-editing.png")
+    folder_frame("#b8342a", "RECORDING", art_recording).save(OUT / "folder-recording.png")
     print("done")

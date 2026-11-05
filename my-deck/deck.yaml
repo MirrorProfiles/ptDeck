@@ -44,6 +44,12 @@ additions applied:
   bounce-auto-labels: 1
   bounce-24-auto-in-your-macro: 1
 icon style: designed
+fonts:                       # this deck's type; other decks keep PT Deck's Barlow until they add their own
+  command: Avenir Next Condensed Demi Bold
+  narrow: Avenir Next Condensed Demi Bold
+  folder: Avenir Next Condensed Bold
+  small: Avenir Next Condensed Medium
+plug-in captions: true       # live insert keys: short plug-in name, maker underneath in its colour
 
 pages:
   Home:
@@ -69,7 +75,7 @@ pages:
 
     1024', macro: Buffer 1024, color: '#606060', lit when: {buffer size: 1024}, lit color: '#2e8b57'}
     - {key: 17, icon: folder-ampete.png, folder: Ampete, outline: none}
-    - {key: 18, icon: recording.png, folder: Recording}
+    - {key: 18, icon: folder-recording.png, folder: Recording, outline: none}
     - {key: 19, icon: folder-editing.png, folder: Editing, outline: none}
     - {key: 20, icon: metric-ab.png, folder: Metric A/B}
     - {key: 21, label: Audio Files - Folder, macro: Audio Files Folder, color: '#bc2488', glyph: folder}

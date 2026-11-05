@@ -291,6 +291,10 @@ keys that don't set `font`), `page settings` (see below), `back button` (true/fa
 `title pattern` (`none` turns off the carpet behind titles), `fonts` and `plug-in captions` (below),
 `additions applied` (kept by PT Deck; don't edit).
 
+`folder color: tab` draws a designed folder key (one without a picture) as a dark key with its `color` on
+the folder tab, frame and name, matching the folder pictures `tools/make_icons.py` makes; without it
+(the default) the colour fills the whole key.
+
 `fonts` changes every piece of type on the deck (labels, the designed look, folder icons made by
 `tools/make_icons.py`, captions) to installed fonts named as Font Book shows them: one name for all,
 or one per kind. A deck without it keeps PT Deck's Barlow fonts, so each deck chooses its own type:
@@ -305,7 +309,7 @@ tall capitals on folders, `small` captions and slot labels. Run `tools/make_icon
 changing it so the folder pictures match.
 
 `plug-in captions: true` makes live insert keys show a plug-in's short name ("Pro-Q 4", "1176 Rev A":
-the maker's prefix and a long generic tail dropped) with the maker underneath and a thin bar in the
+the maker's prefix, "Archetype" and a long generic tail dropped, "Renaissance" shortened to "Ren") with the maker underneath and a thin bar in the
 colour of its Pro Tools category (EQ blue, Dynamics red, Reverb green, Delay teal, Modulation purple,
 Harmonic orange, Pitch Shift yellow, Noise Reduction grey-blue...: `CATEGORY_LOOK` in
 `ptdeck/plugins.py`). The maker comes from the plug-in bundle's identifier (`VENDOR_LOOK` for names).
@@ -314,8 +318,8 @@ The category comes from `my-deck/plugin-categories.yaml`, written by `ptdeck lea
 knows. A picture set for the plug-in in the Manager still wins. Off unless the deck asks for it.
 
 `page settings` gives single pages their own values for `back button`, `back label`, `back color`,
-`back font size`, `page titles`, `title pattern`, `icon style` and `key font`, so one deck can mix
-plain pages with designed ones:
+`back font size`, `page titles`, `title pattern`, `icon style`, `key font` and `folder color`, so one deck
+can mix plain pages with designed ones:
 
 ```yaml
 page settings:

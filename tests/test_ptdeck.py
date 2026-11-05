@@ -2457,3 +2457,24 @@ def test_learn_categories_reads_the_insert_menu(tmp_path):
     sysm._pt.tracks = lambda which="selected": ["Gtr"]
     found = Runner(sysm, lib_with(tmp_path), log=lambda m: None).learn_categories()
     assert found == {"EQ": ["Pro-Q 3", "Pro-Q 4"], "Dynamics": ["Pro-C 2"], "Reverb": ["ValhallaRoom"]}
+
+
+def test_folder_color_tab_puts_the_colour_on_the_tab_not_the_key(tmp_path):
+    key = {"key": 2, "folder": "Commit Tracks", "color": "#b4217c"}
+    cfg = {"home": "Home", "icon style": "designed", "pages": {"Home": [key]}}
+    filled = D.render(D.layout(cfg, "Home", 32)[1], 96, tmp_path)
+    assert filled.getpixel((48, 60))[0] > 120                     # the pink fills the key
+    cfg["folder color"] = "tab"
+    slot = D.layout(cfg, "Home", 32)[1]
+    assert slot["_folder color"] == "tab"
+    tab = D.render(slot, 96, tmp_path)
+    assert tab.getpixel((48, 60))[0] < 60                         # dark key...
+    assert tab.getpixel((20, 8))[0] > 120                         # ...with the pink on the tab
+    assert "folder color" in D.PAGE_SETTINGS
+
+
+def test_short_names_drop_archetype_and_shorten_renaissance():
+    from ptdeck import plugins as P
+    assert P.short_name("Archetype Plini X", "Neural DSP") == "Plini X"
+    assert P.short_name("Renaissance Axx", "Waves") == "Ren Axx"
+    assert P.short_name("Renaissance Compressor", "Waves") == "Ren Compressor"

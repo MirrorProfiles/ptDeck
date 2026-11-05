@@ -81,8 +81,9 @@ CATEGORY_WORDS = [
 ]
 CATEGORIES_FILE = "plugin-categories.yaml"    # in the deck folder: plug-in name -> category, learnt from Pro Tools
 
-VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "bx_", "iZotope ", "Waves ", "Softube ", "Valhalla",
+VENDOR_PREFIXES = ("UADx ", "UAD ", "FabFilter ", "bx_console ", "bx_", "Archetype ", "iZotope ", "Waves ", "Softube ", "Valhalla",
                    "Unfiltered Audio ", "STL ", "TDR ", "NA ", "Oxford ", "Lindell ", "Tube-Tech ")
+SHORT_WORDS = {"renaissance": "Ren"}        # long words with a known short form for a key
 GENERIC_TAIL = {"compressor", "equalizer", "eq", "limiter", "preamp", "and", "plug-in", "plugin", "processor"}
 
 UA_UPPER = {"ua", "ssl", "la", "api", "emt", "eq", "eqp", "meq", "hlf", "atr", "vt", "dbx", "vog", "b3", "a800"}
@@ -269,7 +270,7 @@ def short_name(name: str, vendor: str = "") -> str:
         if out.lower().startswith(pre.lower()) and len(out) > len(pre):
             out = out[len(pre):].strip()
             break
-    words = out.split()
+    words = [SHORT_WORDS.get(w.lower(), w) for w in out.split()]
     while len(words) > 2 and words[-1].lower() in GENERIC_TAIL:
         words.pop()
     return " ".join(words) or str(name)

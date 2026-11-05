@@ -52,7 +52,7 @@ def load_config(path: Path) -> dict:
 
 
 PAGE_SETTINGS = {"back button", "back label", "back color", "back font size", "page titles",
-                 "title pattern", "icon style", "key font"}
+                 "title pattern", "icon style", "key font", "folder color"}
 
 
 def page_cfg(cfg: dict, page: str) -> dict:
@@ -106,6 +106,8 @@ def layout(cfg: dict, page: str, key_count: int, base=None) -> list[dict | None]
         for i, b in enumerate(slots):
             if b and not b.get("back") and not b.get("banner"):
                 slots[i] = dict(b, _look="designed")
+                if b.get("folder") and cfg.get("folder color"):
+                    slots[i]["_folder color"] = cfg["folder color"]
         if base is not None:
             from .look import match_sizes
             match_sizes(slots, base, COLUMNS.get(key_count, 8))

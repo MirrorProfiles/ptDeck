@@ -724,15 +724,23 @@ def render_designed(button: dict, size: int, base) -> Image.Image:
     cap = float(button.get("_maxfrac", 1.0))
     _last_frac[0] = None
     if kind == "folder":
-        bg = button.get("color") or FOLDER_BG
-        img = gradient(S, shade(bg, 0.05), shade(bg, -0.06))
-        d = ImageDraw.Draw(img)
-        fg = text_colour(button, bg)
-        accent = button.get("outline") or (fg if bg != FOLDER_BG else "#d8d8d8")
+        tab_style = str(button.get("_folder color", "fill")).lower() == "tab"
+        if tab_style:                    # the key's colour goes on the tab, frame and name (dark key)
+            img = gradient(S, "#23262b", "#17191c")
+            d = ImageDraw.Draw(img)
+            accent = button.get("outline") or button.get("color") or "#d8d8d8"
+            fg = button.get("text color") or (accent if luminance(accent) > 0.12 else "#ffffff")
+        else:
+            bg = button.get("color") or FOLDER_BG
+            img = gradient(S, shade(bg, 0.05), shade(bg, -0.06))
+            d = ImageDraw.Draw(img)
+            fg = text_colour(button, bg)
+            accent = button.get("outline") or (fg if bg != FOLDER_BG else "#d8d8d8")
         w = max(2, S // 40)
         tab_w, tab_h, top = S * 0.42, S * 0.09, S * 0.16          # a filled folder tab and frame
         d.rounded_rectangle([w, w, tab_w, top + tab_h], radius=S * 0.03, fill=accent)
-        d.rounded_rectangle([w, top, S - w, S - w], radius=S * 0.04, outline=accent, width=w)
+        d.rounded_rectangle([w, top, S - w, S - w], radius=S * 0.04, fill="#1d2024" if tab_style else None,
+                            outline=accent, width=w)
         text = (label or str(button["folder"])).upper()
         fit = (_fit(d, text, "folder", S - 2 * pad, S - top - pad * 1.5, 4, S)
                or _fit(d, text, "command", S - 2 * pad, S - top - pad, 5, S))

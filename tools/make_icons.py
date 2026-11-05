@@ -201,17 +201,18 @@ def track_colours_folder():
 
 
 def folder_frame(accent, title, art):
-    """A folder key: tab outline, a picture of what's inside, the name in tall capitals."""
-    img = look.gradient(S, look.shade(accent, -0.32), look.shade(accent, -0.42))
+    """A folder key: a filled tab and frame in the folder's colour on a dark key, a picture of
+    what's inside, the name in tall capitals in the same colour (white if the colour is too dark)."""
+    img = look.gradient(S, "#23262b", "#17191c")
     d = ImageDraw.Draw(img)
     w = max(2, S // 40)
     tab_w, tab_h, top = S * 0.42, S * 0.09, S * 0.16
-    pts = [(w, top), (w, w + tab_h * 0.2), (tab_w - tab_h, w + tab_h * 0.2), (tab_w, top - tab_h * 0.1),
-           (S - w, top), (S - w, S - w), (w, S - w), (w, top)]
-    art(d, img, (S * 0.12, top + S * 0.05, S * 0.88, S * 0.62))
+    d.rounded_rectangle([w, w, tab_w, top + tab_h], radius=S * 0.03, fill=accent)
+    d.rounded_rectangle([w, top, S - w, S - w], radius=S * 0.04, fill="#1d2024", outline=accent, width=w)
+    art(d, img, (S * 0.12, top + tab_h + S * 0.03, S * 0.88, S * 0.63))
     d = ImageDraw.Draw(img)
-    d.line(pts, fill="#e8e8e8", width=w, joint="curve")
-    label(img, title, S * 0.64, S * 0.3, "#ffffff", kind="folder", frac=(0.2, 0.17, 0.15))
+    name_col = accent if look.luminance(accent) > 0.12 else "#ffffff"
+    label(img, title, S * 0.65, S * 0.28, name_col, kind="folder", frac=(0.2, 0.17, 0.15))
     return img
 
 
@@ -394,22 +395,13 @@ def art_editing(d, img, box):
 
 
 def art_recording(d, img, box):
-    """A round record button, lit, with a small level meter beside it."""
+    """A round record light, lit."""
     x0, y0, x1, y1 = box
-    cy = (y0 + y1) / 2
-    r = (y1 - y0) * 0.36
-    cx = x0 + (x1 - x0) * 0.32
+    cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+    r = (y1 - y0) * 0.4
     d.ellipse([cx - r * 1.3, cy - r * 1.3, cx + r * 1.3, cy + r * 1.3], fill="#2a2a2e", outline="#55585e", width=6)
     d.ellipse([cx - r, cy - r, cx + r, cy + r], fill="#e23b2e")
     d.ellipse([cx - r * 0.55, cy - r * 0.75, cx - r * 0.05, cy - r * 0.35], fill="#ff8f85")
-    bars = 6
-    bx = x0 + (x1 - x0) * 0.62
-    bw = (x1 - bx) / (bars * 1.5)
-    for i in range(bars):
-        h = (y1 - y0) * (0.25 + 0.11 * i)
-        col = "#3fbf6a" if i < 4 else "#e8b532" if i < 5 else "#e23b2e"
-        d.rounded_rectangle([bx + i * bw * 1.5, cy + (y1 - y0) * 0.36 - h, bx + i * bw * 1.5 + bw, cy + (y1 - y0) * 0.36],
-                            radius=bw * 0.2, fill=col)
 
 
 def art_solo(d, img, box):

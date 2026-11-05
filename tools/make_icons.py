@@ -89,8 +89,35 @@ def beat_detective():
     d.line(wave, fill=(200, 40, 40), width=int(9 * k), joint="curve")
     d.line([(cx - 0.35 * r, cy - 0.85 * r), (cx - 0.35 * r, cy + 0.85 * r)], fill=(200, 40, 40), width=int(5 * k))
     img = img.resize((S, S), Image.LANCZOS)
+    detective = img.copy()
     strip(img, "BEAT DETECTIVE", (14, 14, 16), (236, 232, 222))
     img.save(OUT / "beat-detective.png")
+    return detective
+
+
+def art_picture(picture, radius=0.06):
+    """An art function that fits a picture (a PIL image or a file in icons/) into the box, with rounded corners."""
+    def art(d, img, box):
+        x0, y0, x1, y1 = box
+        pic = (picture if isinstance(picture, Image.Image) else Image.open(OUT / picture)).convert("RGBA")
+        side = int(min(x1 - x0, y1 - y0))
+        pic = pic.resize((side, side), Image.LANCZOS)
+        mask = Image.new("L", pic.size, 0)
+        ImageDraw.Draw(mask).rounded_rectangle([0, 0, side - 1, side - 1], radius=int(side * radius), fill=255)
+        img.paste(pic, (int((x0 + x1) / 2 - side / 2), int((y0 + y1) / 2 - side / 2)), mask)
+    return art
+
+
+def art_swatches(d, img, box):
+    """The track colour palette: a row of swatches."""
+    x0, y0, x1, y1 = box
+    colours = ["#4e0a00", "#240d46", "#004011", "#610d0b", "#621662", "#624200", "#00495a"]
+    bw = (x1 - x0) / len(colours)
+    cy = (y0 + y1) / 2
+    h = (y1 - y0) * 0.55
+    for i, c in enumerate(colours):
+        d.rounded_rectangle([x0 + i * bw + 4, cy - h / 2, x0 + (i + 1) * bw - 4, cy + h / 2], radius=S * 0.012,
+                            fill=look.shade(c, 0.12))
 
 
 def base_key(top="#2c3138", bottom="#1b1f24"):
@@ -478,7 +505,11 @@ def lodge_title():
 
 
 if __name__ == "__main__":
-    beat_detective()
+    detective = beat_detective()
+    folder_frame("#c9b27a", "BEAT DETECTIVE", art_picture(detective)).save(OUT / "folder-beat-detective.png")
+    folder_frame("#c8ccd2", "TRACK COLOURS", art_swatches).save(OUT / "folder-track-colours.png")
+    folder_frame("#c9b9a2", "AIRPODS", art_picture("airpods.png")).save(OUT / "folder-airpods.png")
+    folder_frame("#d9894f", "METRIC A/B", art_picture("metric-ab.png")).save(OUT / "folder-metric-ab.png")
     route("[DRUMS]", "route-drums.png")
     route("(PRINT)", "route-print.png")
     renumber_markers()

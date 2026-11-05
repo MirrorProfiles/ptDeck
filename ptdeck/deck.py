@@ -609,7 +609,7 @@ def render(button: dict | None, size: int, base: Path, state: str = "idle") -> I
         avail_h = size - text_top - pad - cap_h
         fs = int(button.get("font size", size // 3 if caption else size // 5 if not icon else size // 7))
         if caption and "\n" not in label:     # a short plug-in name stays on one line if a fair size allows
-            for one in range(fs, size // 5 - 1, -1):
+            for one in range(fs, size // 6 - 1, -1):
                 f1 = named_font(button.get("font") or button.get("_font"), one, label)
                 if d.textlength(label, font=f1) <= size - 2 * pad:
                     fs = one
